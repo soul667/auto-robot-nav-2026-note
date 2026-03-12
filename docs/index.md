@@ -1,25 +1,16 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
-layout: home
-
-hero:
-  name: "Auto robot nav"
-  text: "用于课堂笔记和作业"
-  tagline: My great project tagline
-  actions:
-    - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
-    - theme: alt
-      text: API Examples
-      link: /api-examples
-
-features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+title: 目录
 ---
 
+# 目录
+
+- **基础与代数**
+  - [李群与李代数](/articles/lie-group-primer)
+  - [误差状态与扰动模型](/articles/perturbation-model)
+- **估计与优化**
+  - [最小二乘与 BA](/articles/least-squares-ba)
+  - [EKF-SLAM](/articles/ekf-slam)
+- **附录**
+  - [Markdown 语法示例](/markdown-examples)
+  - [API 示例](/api-examples)
+  - [slambook PDF](/textbook/slambook-en.pdf)
