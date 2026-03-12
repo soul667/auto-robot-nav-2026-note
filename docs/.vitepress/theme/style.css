@@ -22,6 +22,14 @@
   padding-bottom: 0.35rem;
 }
 
+.VPDocAside {
+  display: none;
+}
+
+.VPDoc.has-outline .VPDocOutline {
+  display: none;
+}
+
 .vp-doc blockquote {
   border-left: 3px solid var(--vp-c-brand-1);
   padding: 0.9rem 1.1rem;
