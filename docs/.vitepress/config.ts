@@ -46,6 +46,13 @@ export default defineConfig({
         ]
       },
       {
+        text: '作业',
+        items: [
+          { text: 'HW1 提交版', link: '/articles/homework1-submission' },
+          { text: 'HW1 解题引导', link: '/articles/homework1-tutorial' }
+        ]
+      },
+      {
         text: '参考资料',
         items: [
           { text: '教材 PDF（slambook）', link: '/textbook/slambook-en.pdf' },
@@ -68,6 +75,13 @@ export default defineConfig({
           items: [
             { text: '最小二乘与 BA', link: '/articles/least-squares-ba' },
             { text: 'EKF-SLAM', link: '/articles/ekf-slam' }
+          ]
+        },
+        {
+          text: '作业',
+          items: [
+            { text: 'HW1 提交版', link: '/articles/homework1-submission' },
+            { text: 'HW1 解题引导', link: '/articles/homework1-tutorial' }
           ]
         }
       ],
