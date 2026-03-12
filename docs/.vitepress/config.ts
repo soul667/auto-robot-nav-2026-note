@@ -89,6 +89,6 @@ export default defineConfig({
       message: '基于 VitePress 打造的学术型笔记，与 LaTeX 视觉保持一致性。',
       copyright: 'CC BY-SA 4.0'
     },
-    outline: 'deep'
+    outline: false
   }
 })
