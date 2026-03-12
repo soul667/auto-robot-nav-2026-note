@@ -132,7 +132,7 @@ $\mathbf{q}^* = [\frac{\sqrt{3}}{2},\; (0,0,-\frac{1}{2})]$, $\tilde{\mathbf{p}}
 
 - Real: $\frac{\sqrt{3}}{2}\cdot 0 - (0,0,-\frac{1}{2})\cdot(2,1,0) = 0$
 - Vector: $\frac{\sqrt{3}}{2}(2,1,0) + 0\cdot(0,0,-\frac{1}{2}) + (0,0,-\frac{1}{2})\times(2,1,0)$
-  $= (\sqrt{3}, \frac{\sqrt{3}}{2}, 0) + (0,0,0) + (\frac{1}{2}\cdot 1,\; -\frac{1}{2}\cdot 2 \cdot(-1),\; 0\cdot...) $
+  $= (\sqrt{3}, \frac{\sqrt{3}}{2}, 0) + (0,0,0) + \left(\frac{1}{2},\; -1,\; 0\right)$
 
 Computing cross product $(0,0,-\frac{1}{2})\times(2,1,0) = (0\cdot 0 - (-\frac{1}{2})\cdot 1,\; (-\frac{1}{2})\cdot 2 - 0\cdot 0,\; 0\cdot 1 - 0\cdot 2) = (\frac{1}{2}, -1, 0)$
 
