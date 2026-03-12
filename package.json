@@ -1,10 +1,17 @@
 {
+  "type": "module",
   "scripts": {
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "dependencies": {
+    "katex": "^0.16.11",
     "vue": "^3.5.30"
+  },
+  "devDependencies": {
+    "markdown-it-footnote": "^3.0.3",
+    "markdown-it-mathjax3": "^4.3.2",
+    "vitepress": "^1.3.4"
   }
 }
