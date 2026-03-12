@@ -232,10 +232,12 @@ $$
 **Step 2.** Rotation axis from Eq. (2.44):
 
 $$
-\mathbf{n} = \frac{[q_1, q_2, q_3]^\mathrm{T}}{\sin(\theta/2)}
-= \frac{(0.35355, 0.35355, 0.35355)^\mathrm{T}}{\sin(0.6435)}
-= \frac{(0.35355, 0.35355, 0.35355)^\mathrm{T}}{0.6}
-\approx (0.5893, 0.5893, 0.5893)^\mathrm{T}
+\begin{aligned}
+\mathbf{n} &= \frac{[q_1, q_2, q_3]^\mathrm{T}}{\sin(\theta/2)} \\
+&= \frac{(0.35355, 0.35355, 0.35355)^\mathrm{T}}{\sin(0.6435)} \\
+&= \frac{(0.35355, 0.35355, 0.35355)^\mathrm{T}}{0.6} \\
+&\approx (0.5893, 0.5893, 0.5893)^\mathrm{T}
+\end{aligned}
 $$
 
 Normalizing: $\|\mathbf{n}\| = 0.5893\sqrt{3} \approx 1.0206$, so $\hat{\mathbf{n}} \approx \left(\frac{1}{\sqrt{3}}, \frac{1}{\sqrt{3}}, \frac{1}{\sqrt{3}}\right)^\mathrm{T}$.
