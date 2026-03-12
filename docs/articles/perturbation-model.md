@@ -9,6 +9,7 @@
 $$
 \mathbf{T} = \exp(\boldsymbol{\xi})\,\hat{\mathbf{T}}, \qquad
 \boldsymbol{\xi}\in\mathbb{R}^6.
+\label{eq:left-error}
 $$
 
 若选择右乘误差，则为 $\mathbf{T} = \hat{\mathbf{T}}\,\exp(\boldsymbol{\xi})$。两者的主要区别在于协方差传播时使用的伴随矩阵：
@@ -21,6 +22,7 @@ $$
 \end{bmatrix},
 \qquad
 \boldsymbol{\xi}_\text{right} \approx \operatorname{Ad}_{\hat{\mathbf{T}}}^{-1}\boldsymbol{\xi}_\text{left}.
+\label{eq:adjoint}
 $$
 
 ## 线性化残差
@@ -32,6 +34,7 @@ $$
 h(\hat{\mathbf{T}}) + \mathbf{J}\,\boldsymbol{\xi} - \mathbf{z},
 \qquad
 \mathbf{J} = \left.\frac{\partial h(\exp(\boldsymbol{\xi})\hat{\mathbf{T}})}{\partial \boldsymbol{\xi}}\right|_{\boldsymbol{\xi}=\mathbf{0}}.
+\label{eq:residual-linear}
 $$
 
 使用左乘扰动，雅可比 $\mathbf{J}$ 的前三列对应旋转扰动对残差的影响，后三列对应平移扰动。保持这一排列有助于与 slambook 的推导保持一致。
@@ -43,6 +46,7 @@ $$
 $$
 \boldsymbol{\xi}_{k+1} \approx \mathbf{F}_k \boldsymbol{\xi}_k + \mathbf{G}_k \mathbf{w}_k,\qquad
 \mathbf{P}_{k+1} = \mathbf{F}_k \mathbf{P}_k \mathbf{F}_k^\top + \mathbf{G}_k \mathbf{Q}_k \mathbf{G}_k^\top.
+\label{eq:cov-propagation}
 $$
 
 当状态位于李群上时，$\mathbf{F}_k$ 与 $\mathbf{G}_k$ 需要通过对伴随矩阵的一阶近似获得。例如，对左乘误差有
@@ -55,6 +59,7 @@ $$
 \widehat{\boldsymbol{\phi}} & \widehat{\mathbf{t}} \\
 \mathbf{0} & \widehat{\boldsymbol{\phi}}
 \end{bmatrix}.
+\label{eq:ad}
 $$
 
 这里 $\operatorname{ad}$ 表示李代数的“ad”算子，其形式与 slambook 第 9 讲的推导完全一致。

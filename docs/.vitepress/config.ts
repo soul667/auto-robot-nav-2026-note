@@ -8,14 +8,19 @@ export default defineConfig({
   base: '/auto-robot-nav-2026-note/',
   lastUpdated: true,
   cleanUrls: true,
-  appearance: 'light',
+  appearance: true,
   head: [
     ['meta', { name: 'theme-color', content: '#1f2937' }],
     ['link', { rel: 'icon', href: '/favicon.svg' }]
   ],
   markdown: {
     math: {
-      type: 'katex'
+      type: 'mathjax',
+      options: {
+        tex: {
+          tags: 'all'
+        }
+      }
     },
     config: (md) => {
       md.use(footnote)

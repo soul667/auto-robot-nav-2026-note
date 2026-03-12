@@ -1,112 +1,41 @@
 :root {
-  --vp-c-bg: #fdfaf5;
-  --vp-c-bg-soft: #f5f1e8;
-  --vp-c-bg-mute: #efe9dd;
-  --vp-c-text-1: #1f2937;
-  --vp-c-text-2: #3f4b5a;
-  --vp-c-brand-1: #1f2937;
-  --vp-c-brand-2: #0f172a;
-  --vp-c-brand-3: #0a1526;
-  --vp-c-mute: #d7cfbd;
-  --vp-c-divider: #dcd6c6;
-  --vp-font-family-base: 'STIX Two Text', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
-  --vp-font-family-mono: 'JetBrains Mono', 'Iosevka', 'SFMono-Regular', 'Menlo', monospace;
-}
-
-body {
-  background: radial-gradient(120% 90% at 10% 20%, #f3e9d7 0, rgba(243, 233, 215, 0) 45%),
-    radial-gradient(80% 70% at 80% 10%, #e8dfce 0, rgba(232, 223, 206, 0) 40%),
-    var(--vp-c-bg);
-  color: var(--vp-c-text-1);
-  text-rendering: optimizeLegibility;
-}
-
-.VPNavBar {
-  backdrop-filter: blur(6px);
-  background: rgba(253, 250, 245, 0.9);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
-}
-
-.VPFooter {
-  background: linear-gradient(120deg, rgba(31, 41, 55, 0.1), rgba(10, 21, 38, 0.05));
+  --vp-font-family-base: 'Times New Roman', 'SimSun', 'Songti SC', 'Noto Serif SC', serif;
+  --vp-font-family-mono: 'JetBrains Mono', 'SFMono-Regular', 'Menlo', monospace;
 }
 
 .vp-doc {
-  font-size: 17px;
-  line-height: 1.8;
-  letter-spacing: 0.01em;
+  font-size: 16.5px;
+  line-height: 1.75;
+  text-rendering: optimizeLegibility;
 }
 
 .vp-doc h1,
 .vp-doc h2,
 .vp-doc h3 {
-  font-family: 'STIX Two Text', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
-  letter-spacing: 0.02em;
+  font-family: 'Noto Sans SC', 'Microsoft YaHei', 'Heiti SC', 'Arial', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .vp-doc h1 {
-  font-size: 2rem;
   border-bottom: 1px solid var(--vp-c-divider);
   padding-bottom: 0.35rem;
 }
 
-.vp-doc h2 {
-  margin-top: 2.5rem;
-}
-
 .vp-doc blockquote {
-  background: var(--vp-c-bg-soft);
   border-left: 3px solid var(--vp-c-brand-1);
-  border-radius: 6px;
-  color: var(--vp-c-text-2);
   padding: 0.9rem 1.1rem;
-}
-
-.vp-doc .katex-display {
-  margin: 1.4rem 0;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-}
-
-.vp-doc .katex-display > .katex {
-  font-size: 1.05rem;
 }
 
 .vp-doc code {
   font-size: 0.95em;
-  background: #f4efe3;
-  color: #0f172a;
-  padding: 0.12rem 0.3rem;
-  border-radius: 5px;
 }
 
 .vp-doc pre {
-  border-radius: 12px;
-  background: #0f172a;
-  color: #e6e2d9;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.32);
+  border-radius: 8px;
 }
 
-.vp-doc table {
-  background: #fff;
-  border: 1px solid var(--vp-c-divider);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
-}
-
-.VPHomeHero .image {
-  filter: drop-shadow(0 18px 40px rgba(15, 23, 42, 0.18));
-}
-
-.VPHomeFeatures .item {
-  border: 1px solid var(--vp-c-divider);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-}
-
-@media (min-width: 960px) {
-  .VPDoc {
-    max-width: 840px;
-  }
+.vp-doc .mjx-container[jax='CHTML'][display='true'] {
+  margin: 1.4rem 0;
+  padding: 0.5rem 0.25rem;
 }
