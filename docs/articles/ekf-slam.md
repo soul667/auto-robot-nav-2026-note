@@ -9,7 +9,7 @@
 $$
 \mathbf{x} = \left[\mathbf{T}, \mathbf{p}_1^\top,\dots,\mathbf{p}_n^\top\right]^\top,\qquad
 \delta\mathbf{x} = [\delta\boldsymbol{\xi}^\top,\delta\mathbf{p}_1^\top,\dots]^\top.
-\label{eq:state}
+\tag{1}
 $$
 
 控制输入为里程计或 IMU 积分得到的位移 $\mathbf{u}_k$，其噪声协方差为 $\mathbf{Q}_k$。
@@ -21,14 +21,14 @@ $$
 $$
 \hat{\mathbf{x}}_{k+1|k} = f(\hat{\mathbf{x}}_{k|k}, \mathbf{u}_k), \qquad
 \mathbf{P}_{k+1|k} = \mathbf{F}_k \mathbf{P}_{k|k} \mathbf{F}_k^\top + \mathbf{G}_k \mathbf{Q}_k \mathbf{G}_k^\top.
-\label{eq:predict}
+\tag{2}
 $$
 
 雅可比 $\mathbf{F}_k$ 由伴随矩阵决定。例如位姿部分
 
 $$
 \mathbf{F}_k^{TT} = \operatorname{Ad}_{\exp(\hat{\boldsymbol{\xi}}_u)}\,,
-\label{eq:adjoint-ekf}
+\tag{3}
 $$
 
 体现了群结构对误差传播的影响。
@@ -39,7 +39,7 @@ $$
 
 $$
 \mathbf{r}_k = \mathbf{z}_k - h(\hat{\mathbf{x}}_{k|k-1}),
-\label{eq:residual-ekf}
+\tag{4}
 $$
 
 线性化得到 $\mathbf{r}_k \approx \mathbf{H}_k \delta\mathbf{x} + \mathbf{n}_k$，其中 $\mathbf{H}_k$ 按照“姿态在前、路标在后”的顺序拼接。增益与更新公式为
@@ -47,13 +47,13 @@ $$
 $$
 \mathbf{K}_k = \mathbf{P}_{k|k-1}\mathbf{H}_k^\top
 \left(\mathbf{H}_k\mathbf{P}_{k|k-1}\mathbf{H}_k^\top + \mathbf{R}_k\right)^{-1},
-\label{eq:kf-gain}
+\tag{5}
 $$
 
 $$
 \delta\mathbf{x}_k = \mathbf{K}_k \mathbf{r}_k,\qquad
 \mathbf{P}_{k|k} = (\mathbf{I} - \mathbf{K}_k \mathbf{H}_k)\mathbf{P}_{k|k-1}.
-\label{eq:kf-update}
+\tag{6}
 $$
 
 最后通过左乘扰动将位姿回写到群上：
@@ -61,7 +61,7 @@ $$
 $$
 \hat{\mathbf{T}}_{k|k} = \exp(\delta\boldsymbol{\xi}_k)\,\hat{\mathbf{T}}_{k|k-1},\qquad
 \hat{\mathbf{p}}_{j,k|k} = \hat{\mathbf{p}}_{j,k|k-1} + \delta\mathbf{p}_{j,k}.
-\label{eq:state-update}
+\tag{7}
 $$
 
 ## 稳定性提示

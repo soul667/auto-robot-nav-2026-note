@@ -18,7 +18,9 @@ export default defineConfig({
       type: 'mathjax',
       options: {
         tex: {
-          tags: 'all'
+          tags: 'all',
+          tagSide: 'right',
+          tagIndent: '0.8em'
         }
       }
     },
