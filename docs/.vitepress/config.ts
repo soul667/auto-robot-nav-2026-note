@@ -80,7 +80,8 @@ export default defineConfig({
         {
           text: '研究论文',
           items: [
-            { text: 'Tether 论文中文细读', link: '/research/tether-functional-play' }
+            { text: 'Tether 论文中文细读', link: '/research/tether-functional-play' },
+            { text: 'Tether 关键点策略与最快复现', link: '/research/tether-keypoint-strategies-repro' }
           ]
         }
       ],

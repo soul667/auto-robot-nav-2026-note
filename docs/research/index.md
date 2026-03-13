@@ -5,3 +5,4 @@
 ## 论文细读
 
 - [Tether：自主功能性 Play 与对应驱动轨迹扭曲（中文细读）](/research/tether-functional-play)
+- [Tether：两种关键点对应策略（GeoAware-SC / MASt3R）与最快复现](/research/tether-keypoint-strategies-repro)
