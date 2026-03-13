@@ -32,26 +32,17 @@ export default defineConfig({
     nav: [
       { text: '首页', link: '/' },
       {
-        text: '基础与代数',
+        text: '学习',
         items: [
           { text: '李群与李代数', link: '/articles/lie-group-primer' },
-          { text: '误差状态与扰动模型', link: '/articles/perturbation-model' }
-        ]
-      },
-      {
-        text: '估计与优化',
-        items: [
+          { text: '误差状态与扰动模型', link: '/articles/perturbation-model' },
           { text: '最小二乘与BA', link: '/articles/least-squares-ba' },
-          { text: 'EKF-SLAM', link: '/articles/ekf-slam' }
-        ]
-      },
-      {
-        text: '作业',
-        items: [
+          { text: 'EKF-SLAM', link: '/articles/ekf-slam' },
           { text: 'HW1 提交版', link: '/articles/homework1-submission' },
           { text: 'HW1 解题引导', link: '/articles/homework1-tutorial' }
         ]
       },
+      { text: '研究', link: '/research/' },
       {
         text: '参考资料',
         items: [
@@ -64,7 +55,7 @@ export default defineConfig({
     sidebar: {
       '/articles/': [
         {
-          text: '基础与代数',
+          text: '学习：基础与代数',
           items: [
             { text: '李群与李代数', link: '/articles/lie-group-primer' },
             { text: '误差状态与扰动模型', link: '/articles/perturbation-model' }
@@ -85,11 +76,20 @@ export default defineConfig({
           ]
         }
       ],
+      '/research/': [
+        {
+          text: '研究论文',
+          items: [
+            { text: 'Tether 论文中文细读', link: '/research/tether-functional-play' }
+          ]
+        }
+      ],
       '/': [
         {
           text: '入门',
           items: [
             { text: '首页', link: '/' },
+            { text: '研究目录', link: '/research/' },
             { text: 'Markdown 示例', link: '/markdown-examples' },
             { text: 'API 示例', link: '/api-examples' }
           ]
