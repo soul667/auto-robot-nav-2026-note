@@ -13,6 +13,9 @@ title: 目录
 - **作业**
   - [HW1 提交版](/articles/homework1-submission)
   - [HW1 解题引导](/articles/homework1-tutorial)
+- **研究**
+  - [研究目录](/research/)
+  - [Tether：自主功能性 Play（论文中文细读）](/research/tether-functional-play)
 - **附录**
   - [Markdown 语法示例](/markdown-examples)
   - [API 示例](/api-examples)
