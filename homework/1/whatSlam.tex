@@ -1,225 +1,225 @@
 % !Mode:: "TeX:UTF-8"
-\chapter{Introduction to SLAM}
+\chapter{SLAM 简介}
 \label{cpt:2}
 \begin{mdframed}
-	\textbf{Goal of Study}
+	\textbf{学习目标}
 	\begin{enumerate}[labelindent=0em,leftmargin=1.5em]
-		\item Understand which modules a visual SLAM framework consists of, and what task each module carries out.
-		\item Set up the programming environment, and prepare for experiments.
-		\item Understand how to compile and run a program under Linux. If there is a problem, how to debug it.
-		\item Learn the basic usage of CMake.
+		\item 了解视觉 SLAM 框架由哪些模块组成，以及每个模块承担什么任务。
+		\item 搭建编程环境，为实验做好准备。
+		\item 了解如何在 Linux 下编译和运行程序，以及遇到问题时如何调试。
+		\item 学习 CMake 的基本用法。
 	\end{enumerate}
 \end{mdframed}
 
-This lecture summarizes the structure of a visual SLAM system as an outline of subsequent chapters. The practice part introduces the fundamentals of environment setup and program development. We will make a small ``Hello SLAM'' program at the end.
+本章概述了视觉 SLAM 系统的整体结构，作为后续各章的提纲。实践部分介绍了环境搭建和程序开发的基础知识，我们将在最后编写一个小小的"Hello SLAM"程序。
 
 \newpage
 %\includepdf{resources/other/ch2.pdf}
 %\newpage
 
-\section{Meet ``Little Carrot''}
-Suppose we assembled a robot called \emph{Little Carrot}, as shown in the following figure:
+\section{初识"小萝卜"}
+假设我们组装了一个名叫\emph{小萝卜}的机器人，如下图所示：
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{resources/whatIsSLAM/carrot.pdf}
-	\caption{The sketch of robot \emph{Little Carrot}}
+	\caption{机器人\emph{小萝卜}的示意图}
 \end{figure}
 
-Although it looks a bit like the Android robot, it has nothing to do with the Android system. We put a laptop into its trunk (so that we can debug programs at any time). So, what do we expect it to do? 
+虽然它看起来有点像安卓机器人，但与安卓系统毫无关系。我们在它的躯干里放了一台笔记本电脑（这样随时可以调试程序）。那么，我们希望它能做什么？
 
-We hope \textit{Little Carrot} has the ability of autonomous moving. Many domestic robots are placed statically on desktops. They can chat with people or play music, but a tablet computer nowadays can also deliver the same tasks. As a robot, we hope Little Carrot can move freely in a room. Wherever we say hello to it, it can come to us right away.
+我们希望\textit{小萝卜}具备自主移动的能力。许多家用机器人被静置在桌面上，它们可以和人聊天或播放音乐，但如今一台平板电脑也能完成这些任务。作为一个机器人，我们希望小萝卜能在房间里自由移动——无论我们在哪里向它打招呼，它都能立刻来到我们身边。
 
-First of all, such a robot needs wheels and motors to move, so we installed wheels on it (gait control for humanoid robots is very complicated, which we will not be considered here). Now with the wheels, the robot is able to move, but without an effective navigation system, \textit{Little Carrot} does not know where a target of action is, and it can do nothing but wander around blindly. Even worse, it may hit a wall and cause damage. To avoid this, we installed cameras on its head, with the intuition that such a robot should look similar to a human. Indeed, with eyes, brains, and limbs, humans can walk freely and explore any environment, so we (somehow naively) think that our robot should be able to achieve it too. Well, to make Little Carrot able to explore a room, we find it at least needs to know two things:
+首先，这样的机器人需要轮子和电机来移动，所以我们为它安装了轮子（仿人机器人的步态控制非常复杂，这里暂不考虑）。有了轮子之后，机器人能够运动，但没有有效的导航系统，\textit{小萝卜}不知道目标在哪里，只能漫无目的地乱转。更糟糕的是，它可能会撞墙并造成损坏。为了避免这种情况，我们在它头部安装了摄像头——直觉上，这样的机器人应该长得有点像人。确实，人类有眼睛、大脑和四肢，可以自由行走并探索任何环境，于是我们（有些天真地）认为机器人也应该能做到这一点。那么，要让小萝卜能够探索一个房间，至少需要知道两件事：
 
 \begin{enumerate}
-	\item Where am I? - It's about \emph{localization}.
-	\item What is the surrounding environment like? - It's about \emph{map building}.
+	\item 我在哪里？——这是关于\emph{定位}的问题。
+	\item 周围的环境是什么样的？——这是关于\emph{地图构建}的问题。
 \end{enumerate}
 
-\textit{Localization} and \textit{map building} can be seen as the perception in both inward and outward directions. As a completely autonomous robot, \textit{Little Carrot} needs to understand its own state (i.e., the location) and the external environment (i.e., \ the map). Of course, there are many different approaches to solve these two problems. For example, we can lay guiding rails on the floor of the room, or paste a lot of artificial markers such as QR code pictures on the wall, or mount radio localization devices on the table. If you are outdoor, you can also install a GNSS receiver (like the one in a cell phone or a car) on the head of Little Carrot. With these devices, can we claim that the localization problem has been resolved? Let's categorize these sensors (see Fig.~\ref{fig:sensors}) into two classes.
+\textit{定位}和\textit{地图构建}可以看作是向内和向外两个方向上的感知。作为一个完全自主的机器人，\textit{小萝卜}需要了解自身状态（即位置）和外部环境（即地图）。当然，解决这两个问题有很多不同的方法。例如，我们可以在房间地板上铺设导引轨道，或在墙上张贴大量人工标识（如二维码图片），或在桌上安装无线电定位装置。如果是在户外，还可以在小萝卜头部安装 GNSS 接收器（类似手机或汽车中使用的那种）。使用了这些设备，是否就能说定位问题已经解决了？让我们将这些传感器（见图~\ref{fig:sensors}）分为两类。
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{./resources/whatIsSLAM/sensors.jpg}
-	\caption{Different kinds of sensors: (a) QR code; (b) GNSS receiver; (c) Guiding rails; (d) Laser range finder; (e) Inertial measurement unit; (f) Stereo camera; }
+	\caption{各种传感器：(a) 二维码；(b) GNSS 接收器；(c) 导引轨道；(d) 激光测距仪；(e) 惯性测量单元；(f) 双目相机。}
 	\label{fig:sensors}
 \end{figure}
 
-The first class is non-intrusive sensors, which are entirely self-contained inside a robot, such as wheel encoders, cameras, laser scanners, etc. They do not assume a cooperative environment around the robot. The other class is intrusive sensors depending on a prepared environment, such as the above-mentioned guiding rails, QR codes, etc. Intrusive sensors can usually locate a robot directly, solving the localization problem in a simple and effective manner. However, since they require changes in the environment, the usage scope is often limited to a certain degree. For example, if there is no GPS signal or guiding rails cannot be laid, what should we do in those cases?
+第一类是非侵入式传感器，完全自包含于机器人内部，如轮式编码器、相机、激光扫描仪等，它们不要求机器人周围的环境具有任何配合。另一类是依赖预设环境的侵入式传感器，如上述导引轨道、二维码等。侵入式传感器通常能直接定位机器人，以简单有效的方式解决定位问题。然而，由于它们需要对环境进行改造，使用范围往往受到一定限制。例如，如果没有 GPS 信号或无法铺设导引轨道，又该怎么办？
 
-We can see that the intrusive sensors place certain constraints on the external environment. A localization system based on them can only function properly when those constraints are met in the real world. Otherwise, the localization approach cannot be carried out anymore, like GPS localization system normally doesn't work well in indoor environments. Therefore, although this type of sensor is reliable and straightforward, it does not work as a general solution. In contrast, non-intrusive sensors, such as laser scanners, cameras, wheel encoders, Inertial Measurement Units (IMUs), etc., can only observe indirect physical quantities rather than the direct location. For example, a wheel encoder measures the wheel rotation angle. An IMU measures the angular velocity and the acceleration. A camera or a laser scanner observes the external environment in a specific form like point-clouds and images. We have to apply algorithms to infer positions from these indirect observations. While this sounds like a roundabout tactic, the more obvious benefit is that it does not make any demands on the environment, making it possible for this localization framework to be applied to an unknown environment. Therefore, they are called self-localization in many research areas.
+可以看到，侵入式传感器对外部环境施加了一定约束。基于它们的定位系统只有在现实世界中满足这些约束时才能正常工作，否则定位方案便无法执行——例如 GPS 定位系统在室内通常效果不佳。因此，尽管这类传感器可靠且直观，但并不是通用的解决方案。相比之下，非侵入式传感器（如激光扫描仪、相机、轮式编码器、惯性测量单元（IMU）等）只能观测间接物理量，而非直接位置。例如，轮式编码器测量车轮转角，IMU 测量角速度和加速度，相机或激光扫描仪则以点云和图像等特定形式观测外部环境。我们必须使用算法从这些间接观测中推断位置。虽然听起来像是绕了弯路，但更明显的优势在于它对环境没有任何要求，使这套定位框架能够应用于未知环境。因此，在许多研究领域中，它们也被称为自定位。
 
-Looking back at the SLAM definitions discussed earlier, we emphasized an unknown environment in SLAM problems. In theory, we should not presume which environment the \textit{Little Carrot} will be used (but in reality, we will have a rough range, such as indoor or outdoor), which means that we can not assume that external sensors like GPS can work smoothly. Therefore, the use of portable non-intrusive sensors to achieve SLAM is our main focus. In particular, when talking about visual SLAM, we generally refer to \textit{cameras}' usage to solve the localization and map building problems.
+回顾之前关于 SLAM 定义的讨论，我们强调了 SLAM 问题中的"未知环境"。理论上，我们不应预设\textit{小萝卜}将在什么环境中使用（但实际上会有一个大致范围，例如室内或室外），这意味着我们不能假设 GPS 等外部传感器能顺畅工作。因此，使用便携式非侵入式传感器实现 SLAM，是我们关注的重点。特别地，当我们谈论视觉 SLAM 时，通常是指使用\textit{相机}来解决定位和地图构建问题。
 
-Visual SLAM is the main subject of this book, so we are particularly interested in what the Little Carrot's eyes can do. The cameras used in SLAM are different from the commonly seen single-lens reflex (SLR) cameras. It is often much cheaper and does not carry an expensive lens. It shoots at the surrounding environment at a specific rate, forming a continuous video stream. An ordinary camera can capture images at 30 frames per second, while high-speed cameras can do faster. The camera can be roughly divided into three categories: monocular, stereo, and RGB-D, as shown by the following figure~\ref{fig:cameras}. Intuitively, a monocular camera has only one camera. A stereo camera has two. The principle of an RGB-D camera is more complicated. In addition to collecting color images, it can also measure the distance of the scene from the camera for each pixel. RGB-D devices usually carry multiple cameras and may adopt a variety of different working principles. In the fifth lecture, we will detail their working principles, and readers just need an intuitive impression for now. Some new special and emerging camera types can also be applied to SLAM, such as panorama camera~\cite{Pretto2011}, event camera~\cite{Rueckauer2016}. Although they are occasionally seen in SLAM applications, so far, they have not become mainstream. From the appearance, we can infer that Little Carrot seems to carry a stereo camera.
+视觉 SLAM 是本书的主要研究对象，因此我们对小萝卜的"眼睛"能做什么格外感兴趣。SLAM 中使用的相机与常见的单反相机不同，它通常便宜得多，也不配备昂贵的镜头，以特定帧率拍摄周围环境，形成连续的视频流。普通相机每秒可拍摄 30 帧，高速相机则更快。相机大致可分为三类：单目、双目和 RGB-D，如下图~\ref{fig:cameras} 所示。直观来说，单目相机只有一个摄像头，双目相机有两个，RGB-D 相机的原理更为复杂——除了采集彩色图像，还能测量场景中每个像素距相机的距离。RGB-D 设备通常携带多个相机，可能采用多种不同的工作原理。我们将在第五讲中详细介绍其工作原理，读者现在只需有个直观印象即可。此外，还有一些新型特殊相机也可应用于 SLAM，如全景相机~\cite{Pretto2011}、事件相机~\cite{Rueckauer2016}，尽管它们偶尔出现在 SLAM 应用中，但目前尚未成为主流。从外观来看，小萝卜似乎搭载了一台双目相机。
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{./resources/whatIsSLAM/camera.pdf}
-	\caption{Different kinds of cameras: monocular, RGB-D and stereo. }
+	\caption{各类相机：单目、RGB-D 和双目。}
 	\label{fig:cameras}
 \end{figure}
 
-Now, let's take a look at the pros and cons of using different types of cameras for SLAM.
+现在，让我们看看使用不同类型相机进行 SLAM 各有什么优缺点。
 
-\subsubsection{Monocular Camera}
+\subsubsection{单目相机}
 
-The SLAM system that uses only one camera is called Monocular SLAM. This sensor structure is particularly simple, and the cost is particularly low. Therefore the monocular SLAM has been very attractive to researchers. You must have seen the output data of a monocular camera: photo. Yes, what can we do with a single photo?
+只使用一个相机的 SLAM 系统称为单目 SLAM。这种传感器结构极为简单，成本特别低，因此单目 SLAM 对研究人员极具吸引力。你一定见过单目相机的输出数据：照片。是的，我们能用一张照片做什么？
 
-A photo is essentially a \textit{projection} of a scene onto a camera's imaging plane. It reflects a three-dimensional world in a two-dimensional form. Evidently, there is one dimension lost during this projection process: the so-called \textit{depth} (or distance). In a monocular case, we can not obtain the distance between objects in the scene and the camera by using a single image. Later, we will see that this distance is critical for SLAM. Because we humans have seen many photos, we formed a natural sense of distances for most scenes, helping us determine the distance relationship among the objects in the image. For example, we can recognize objects in the image and correlate them with their approximate size obtained from daily experience. The close objects will occlude the distant objects; the sun, the moon, and other celestial objects are infinitely far away; an object will have shadow if it is under sunlight. This common-sense can help us determine the distance of objects, but there are also certain cases that confuse us, and we can no longer distinguish the distance and proper size of an object. The following figure~\ref{fig:why-depth} shows an example. We can not determine whether the figures are real people or small toys purely based on the image itself. Unless we change our view angle, explore the three-dimensional structure of the scene. It may be a big but far away object, but it may also be a close but small object. They may appear to be the same size in an image due to the perspective projection effect.
+一张照片本质上是场景在相机成像平面上的一次\textit{投影}，它以二维形式反映三维世界。显然，在这个投影过程中，有一个维度丢失了，即所谓的\textit{深度}（或距离）。在单目情形下，我们无法从单张图像获取场景中物体与相机之间的距离。后面我们会看到，这个距离对 SLAM 至关重要。由于人类看过很多照片，我们对大多数场景形成了自然的距离感，能够判断图像中物体的远近关系。例如，我们可以识别图像中的物体，并结合日常经验推测其大致尺寸；近处的物体会遮挡远处的物体；太阳、月亮等天体在无限远处；物体在阳光下会有阴影。这些常识有助于我们判断物体的距离，但也存在令我们困惑的情形，难以分辨物体的距离和真实大小。图~\ref{fig:why-depth} 展示了一个例子——我们无法仅凭图像本身判断图中的人物是真人还是小玩具。除非改变观察角度，探索场景的三维结构。一个物体可能又大又远，也可能又小又近，由于透视投影效应，它们在图像中可能看起来一样大。
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{./resources/whatIsSLAM/why-depth.pdf}
-	\caption{We cannot tell if the people are real humans or just small toys from a single image.}
+	\caption{仅凭单张图像，我们无法判断图中的人是真人还是小玩具。}
 	\label{fig:why-depth}
 \end{figure}
 
-Since the image taken by a monocular camera is just a 2D projection of the 3D space, if we want to recover the 3D structure, we have to change the camera's view angle. Monocular SLAM adopts the same principle. We move the camera and estimate its motion, as well as the distances and sizes of the objects in the scene, namely the structure of the scene. So how do we estimate these movements and structures? From the everyday experience, we know that if a camera moves to the right, the objects in the image will move to the left, which gives us an inspiration of inferring motion. On the other hand, we also know that closer objects move faster, while distant objects move slower. Thus, when the camera moves, the movement of these objects on the image forms pixel \textit{disparity}. Through calculating the disparity, we can quantitatively determine which objects are far away and which objects are close.
+由于单目相机拍摄的图像只是三维空间的二维投影，如果想恢复三维结构，就必须改变相机的观察角度。单目 SLAM 采用的正是这一原理：移动相机，估计其运动，以及场景中物体的距离和大小，即场景的结构。那么如何估计这些运动和结构呢？根据日常经验，我们知道，当相机向右移动时，图像中的物体会向左移动，这给了我们推断运动的启示。另一方面，我们也知道，近处的物体移动得更快，远处的物体移动得更慢。因此，当相机运动时，这些物体在图像上的移动就形成了像素\textit{视差}。通过计算视差，我们可以定量判断哪些物体远、哪些物体近。
 
-However, even if we know which objects are near and far, they are still only relative values. For example, when we are watching a movie, we can tell which objects in the movie scene are bigger than the others, but we can not determine the real size of those objects -- are the buildings real high-rise buildings or just models on a table? Is it a real monster that destroys a building, or just an actor wearing special clothing? Intuitively, if the camera's movement and the scene size are doubled simultaneously, monocular cameras see the same. Likewise, multiplying this size by any factor, we will still get the same picture. This demonstrates that the trajectory and map obtained from monocular SLAM estimation will differ from the actual trajectory and map with an unknown factor, which is called the \textit{scale} \footnote{We will explain the mathematical reason in the visual odometry chapter.}. Since monocular SLAM can not determine this real scale purely based on images, this is also called the scale ambiguity.
+然而，即使知道物体的远近，它们仍只是相对值。例如，看电影时，我们能分辨场景中哪些物体更大，但无法确定这些物体的真实尺寸——那些建筑是真正的高楼大厦还是桌上的模型？那个摧毁建筑的是真正的怪兽，还是穿着特殊服装的演员？直觉上，如果相机的运动和场景尺寸同时扩大一倍，单目相机看到的画面完全相同。同理，将这个尺寸乘以任意倍数，图像依然不变。这说明，单目 SLAM 估计得到的轨迹和地图与真实轨迹和地图之间，存在一个未知的缩放因子，称为\textit{尺度}\footnote{我们将在视觉里程计章节中用数学方式解释其原因。}。由于单目 SLAM 无法仅凭图像确定这个真实尺度，因此也称为尺度不确定性。
 
-In monocular SLAM, depth can only be calculated with translational movement, and the real scale cannot be determined. These two things could cause significant trouble when applying monocular SLAM into real-world applications. The fundamental cause is that depth can not be determined from a single image. So, in order to obtain real-scaled depth, we start to use stereo and RGB-D cameras.
+在单目 SLAM 中，深度只能通过平移运动来计算，且无法确定真实尺度。这两个问题在将单目 SLAM 应用于实际场景时会带来严重困扰，根本原因在于从单张图像无法确定深度。因此，为了获取真实尺度的深度，我们开始使用双目相机和 RGB-D 相机。
 
-\subsubsection{Stereo Cameras and RGB-D Cameras}
-The purpose of using stereo and RGB-D cameras is to measure the distance between objects and the camera, to overcome the shortcomings of monocular cameras that distances are unknown. Once distances are known, the 3D structure of a scene can be recovered from a single frame and eliminates scale ambiguity. Although both stereo and RGB-D cameras can measure the distance, their principles are not the same. A stereo camera consists of two synchronized monocular cameras, displaced with a known distance, namely the baseline. Because the physical distance of the baseline is known, we can calculate each pixel's 3D position in a very similar way to our human eyes. We can estimate the objects' distances based on the differences between the images from the left and right eye, and we can try to do the same on computers (see Fig.~\ref{fig:stereo}). We can also extend stereo camera to multi-camera systems if needed, but basically, there is no much difference.
+\subsubsection{双目相机与 RGB-D 相机}
+使用双目相机和 RGB-D 相机的目的，是测量物体与相机之间的距离，以克服单目相机距离未知的不足。一旦距离已知，就可以从单帧中恢复场景的三维结构，消除尺度不确定性。虽然双目相机和 RGB-D 相机都能测量距离，但其原理并不相同。双目相机由两个同步的单目相机组成，两者之间有一个已知距离，即基线。由于基线的物理距离已知，我们可以用与人类眼睛非常相似的方式计算每个像素的三维位置。我们可以根据左右眼图像之间的差异来估计物体的距离，计算机也可以做同样的事（见图~\ref{fig:stereo}）。如有需要，还可以将双目相机扩展为多目相机系统，但基本原理并无太大差异。
 
 \begin{figure}
     \centering
     \includegraphics[width=0.8\textwidth]{./resources/whatIsSLAM/stereo.pdf}
-    \caption{Distance is calculated from the disparity of two stereo image pair.}
+    \caption{通过双目图像对的视差计算距离。}
     \label{fig:stereo}
 \end{figure}
 
-Stereo cameras usually require a significant amount of computational power to (unreliably) estimate depth for each pixel, which is really clumsy compared to human beings. The depth range measured by a stereo camera is related to the baseline length. The longer a baseline is, the farther it can measure. So stereo cameras mounted on autonomous vehicles are usually quite big. Depth estimation for stereo cameras is achieved by comparing images from the left and right cameras and not relying on other sensing equipment. Thus stereo cameras can be applied both indoor and outdoor. The disadvantage of stereo cameras or multi-camera systems is that the configuration and calibration process is complicated. Their depth range and accuracy are limited by baseline length and camera resolution. Moreover, stereo matching and disparity calculation also consume many computational resources and usually require GPU or FPGA to accelerate to generate real-time depth maps. Therefore, in most state-of-the-art algorithms, the computational cost is still one of the major problems of stereo cameras.
+双目相机通常需要大量算力来为每个像素（不可靠地）估计深度，与人类相比显得相当笨拙。双目相机的测量深度范围与基线长度有关，基线越长，测量距离越远，因此安装在自动驾驶车辆上的双目相机通常体积较大。双目相机的深度估计通过比较左右相机图像实现，不依赖其他传感设备，因此既可用于室内也可用于室外。双目相机或多目相机系统的缺点是标定和配置过程复杂，深度范围和精度受基线长度和相机分辨率限制。此外，立体匹配和视差计算也消耗大量计算资源，通常需要 GPU 或 FPGA 加速才能生成实时深度图。因此，在目前的前沿算法中，计算开销仍是双目相机的主要问题之一。
 
-Depth camera (also known as RGB-D camera, RGB-D will be used in this book) is a new type of camera rising since 2010. Similar to laser scanners, RGB-D cameras adopt infrared structure of light or Time-of-Flight (ToF) principles and measure the distance between objects and the camera by actively emitting light to the object and receive the returned light. This part is not solved by software as a stereo camera, but by physical sensors to save many computational resources compared to stereo cameras (see Fig.~\ref{fig:RGBD}). Common RGB-D cameras include Kinect / Kinect V2, Xtion Pro Live, RealSense, etc. However, most of the RGB-D cameras still suffer from issues including narrow measurement range, noisy data, small field of view, susceptibility to sunlight interference, and unable to measure transparent material. For SLAM purposes, RGB-D cameras are mainly used in indoor environments and are not suitable for outdoor applications \footnote{Note that this book is written in 2016. The statements may be outdated in future.}.
+深度相机（也称 RGB-D 相机，本书统一使用 RGB-D）是 2010 年前后兴起的一类新型相机。与激光扫描仪类似，RGB-D 相机采用红外结构光或飞行时间（ToF）原理，通过主动向物体发射光线并接收返回光来测量物体与相机的距离。这部分功能不像双目相机那样靠软件实现，而是由物理传感器完成，与双目相机相比可节省大量计算资源（见图~\ref{fig:RGBD}）。常见的 RGB-D 相机包括 Kinect / Kinect V2、Xtion Pro Live、RealSense 等。然而，大多数 RGB-D 相机仍存在测量范围窄、数据噪声大、视场角小、易受阳光干扰以及无法测量透明材质等问题。就 SLAM 用途而言，RGB-D 相机主要用于室内环境，不适合户外应用\footnote{注意：本书写于 2016 年，部分说法在未来可能已过时。}。
 
 \begin{figure}
     \centering
     \includegraphics[width=0.8\textwidth]{./resources/whatIsSLAM/rgbd.pdf}
-    \caption{RGBD cameras measure the distance and can build a point cloud with a single image frame.}
+    \caption{RGB-D 相机可测量距离，并能从单帧图像构建点云。}
     \label{fig:RGBD}
 \end{figure}
 
-We have discussed the common types of cameras, and we believe you should have gained an intuitive understanding of them. Now, imagine a camera is moving in a scene, we will get a series of continuously changing images \footnote{You can try to use your phone to record a video clip.}. The goal of visual SLAM is to localize and build a map using these images. This is not a simple task like you think. It is not a single algorithm that continuously outputs positions and map information as long as we feed it with input data. SLAM requires an algorithm framework, and after decades of hard work by researchers, the framework has been matured in recent years.
+我们已经介绍了常见的相机类型，相信你对它们已有直观的了解。现在，设想一个相机在场景中移动，我们会得到一系列连续变化的图像\footnote{你可以用手机录制一段视频来体验一下。}。视觉 SLAM 的目标就是利用这些图像进行定位和地图构建。这并不像你想象的那么简单，它不是一个只要输入数据就能持续输出位置和地图信息的单一算法。SLAM 需要一套算法框架，经过研究人员数十年的努力，这套框架近年来已趋于成熟。
 
-\section{Classical Visual SLAM Framework}
+\section{经典视觉 SLAM 框架}
 
-Let's take a look at the classic visual SLAM framework, shown in the following figure~\ref{fig:workflow}:
+让我们看看经典的视觉 SLAM 框架，如下图~\ref{fig:workflow} 所示：
 
 \begin{figure}
     \centering
     \includegraphics[width=0.8\textwidth]{./resources/whatIsSLAM/workflow.pdf}
-    \caption{The classic visual SLAM framework.}
+    \caption{经典视觉 SLAM 框架。}
     \label{fig:workflow}
 \end{figure}
 
-A typical visual SLAM workflow  includes the following steps:
+典型的视觉 SLAM 工作流程包括以下步骤：
 \begin{enumerate}
-\item{Sensor data acquisition}. In visual SLAM, this mainly refers to for acquisition and preprocessing of camera images. For a mobile robot, this will also include the acquisition and synchronization with motor encoders, IMU sensors, etc.
-\item{Visual Odometry (VO)}. VO's task is to estimate the camera movement between adjacent frames (ego-motion) and generate a rough local map. VO is also known as the \emph{frontend}.
-\item{Backend filtering/optimization}. The backend receives camera poses at different time stamps from VO and results from loop closing, and then applies optimization to generate a fully optimized trajectory and map. Because it is connected after the VO, it is also known as the \textit{backend}.
-\item {Loop Closing}. Loop closing determines whether the robot has returned to its previous position in order to reduce the accumulated drift. If a loop is detected, it will provide information to the backend for further optimization.
-\item {Reconstruction}. It constructs a task-specific map based on the estimated camera trajectory.
+\item{传感器数据采集}。在视觉 SLAM 中，主要指对相机图像的采集和预处理。对于移动机器人，还包括对电机编码器、IMU 等传感器数据的采集与同步。
+\item{视觉里程计（VO）}。VO 的任务是估计相邻帧之间的相机运动（自运动），并生成粗略的局部地图。VO 也称为\emph{前端}。
+\item{后端滤波/优化}。后端接收来自 VO 在不同时间戳下的相机位姿以及回环检测的结果，然后对其进行优化，生成全局一致的轨迹和地图。由于它位于 VO 之后，也称为\textit{后端}。
+\item{回环检测}。回环检测用于判断机器人是否回到了之前经过的位置，以减少累积误差。若检测到回环，则将相关信息提供给后端进行进一步优化。
+\item{建图}。根据估计得到的相机轨迹，构建面向具体任务的地图。
 \end{enumerate}
 
-The classic visual SLAM framework is the result of more than a decade's research endeavor. The framework itself and the algorithms have been basically finalized and provided as essential functions in several public vision and robotics libraries. Relying on these algorithms, we can build visual SLAM systems performing real-time localization and mapping in static environments. Therefore, we can reach a rough conclusion that if the working environment is limited to fixed and rigid with stable lighting conditions and no human interference, the visual SLAM problem is basically solved~\cite{Cadena2016}.
+经典视觉 SLAM 框架是十余年研究成果的结晶。框架本身及其算法已基本定型，并在多个公开的视觉和机器人库中作为核心功能提供。借助这些算法，我们能够在静态环境中构建实时定位和建图的视觉 SLAM 系统。因此，可以初步得出结论：如果工作环境限定为固定刚性、光照稳定、无人为干扰的场景，视觉 SLAM 问题基本已得到解决~\cite{Cadena2016}。
 
-The readers may not have fully understood the concepts of the modules mentioned above yet, so we will detail each module's functionality in the following sections. However, a deeper understanding of their working principles requires certain mathematical knowledge, which will be expanded in this book's second part. For now, an intuitive and qualitative understanding of each module is good enough.
+读者可能对上述各模块的概念还没有完全理解，因此我们将在以下各节中详细介绍每个模块的功能。但要深入理解其工作原理，需要一定的数学基础，这将在本书第二部分展开。目前，对每个模块有直观的定性理解即可。
 
-\subsubsection{Visual Odometry}
+\subsubsection{视觉里程计}
 
-The visual odometry is concerned with the movement of a camera between adjacent image frames, and the simplest case is, of course, the motion between two successive images. For example, when we see the images in Fig.~\ref{fig:cameramotion}, we will naturally tell that the right image should be the result of the left image after a rotation to the left with a certain angle (it will be easier if we have a video input). Let's consider this question: how do we know the motion is ``turning left''? Humans have long been accustomed to using our eyes to explore the world and estimating our own positions, but this intuition is often difficult to explain, especially in natural language. When we see these images, we will naturally think that, ok, the bar is close to us, the walls and the blackboard are farther away. When the camera turns to the left, the bar's closer part starts to appear, and the cabinet on the right side starts to move out of our sight. With this information, we conclude that the camera should be rotating to the left.
+视觉里程计关注相邻图像帧之间的相机运动，最简单的情形是连续两帧之间的运动。例如，看到图~\ref{fig:cameramotion} 中的图像，我们自然会判断右图是左图向左旋转一定角度后的结果（有视频输入时会更容易判断）。思考一下：我们怎么知道运动是"向左转"？人类长期习惯用眼睛探索世界、估计自身位置，但这种直觉往往难以解释，尤其是用自然语言。当我们看到这些图像时，会自然地想到：吧台离我们近，墙壁和黑板更远。相机向左转时，吧台更近的部分开始出现，右侧的柜子开始移出视野。根据这些信息，我们得出相机应该向左旋转的结论。
 
 \begin{figure}
     \centering
     \includegraphics[width=1.0\textwidth]{./resources/whatIsSLAM/cameramotion.pdf}
-    \caption{Camera motion can be inferred from two consecutive image frames. Images are from the NYUD dataset~\cite{Silberman2012}.}
+    \caption{相机运动可以从两帧连续图像中推断。图像来自 NYUD 数据集~\cite{Silberman2012}。}
     \label{fig:cameramotion}
 \end{figure}
 
-But if we go a step further: can we determine how much the camera has rotated or translated in units of degrees or centimeters? It is still difficult for us to give a quantitative answer. Because our intuition is not good at calculating numbers. But for a computer, movements have to be described with such numbers. So we will ask: how should a computer determine a camera's motion only based on images?
+但如果进一步追问：能否以度或厘米为单位，确定相机旋转或平移了多少？对此我们很难给出定量答案，因为直觉并不擅长计算数字。但对计算机而言，运动必须以这样的数字来描述。那么，计算机应如何仅凭图像确定相机的运动？
 
-As mentioned earlier, in the field of computer vision, a task that seems natural to a human can be very challenging for a computer. Images are nothing but numerical matrices in computers. A computer has no idea what these matrices \textit{mean} (this is the problem that machine learning is also trying to solve). In visual SLAM, we can only see blocks of pixels, knowing that they are the results of projections by spatial points onto the camera's imaging plane. In order to quantify a camera's movement, we must first {understand the geometric relationship between a camera and the spatial points}.
+如前所述，在计算机视觉领域，对人类来说自然的任务，对计算机而言可能极具挑战性。图像在计算机中不过是数字矩阵，计算机并不知道这些矩阵\textit{意味着}什么（这也是机器学习试图解决的问题）。在视觉 SLAM 中，我们看到的只是一块块像素，知道它们是空间点投影到相机成像平面上的结果。为了定量描述相机的运动，我们必须首先{理解相机与空间点之间的几何关系}。
 
-Some background knowledge is needed to clarify this geometric relationship and the realization of VO methods. Here we only want to convey an intuitive concept. For now, you just need to take away that VO can estimate camera motions from images of adjacent frames and restore the 3D structures of the scene. It is named odometry because it is similar to a real wheel odometry, which only calculates the ego-motion at neighboring moments and does not estimate a global map or an absolute pose. In this regard, VO is like a species with only a short memory.
+阐明这一几何关系和实现 VO 的方法需要一定的背景知识，这里我们只想传达一个直观的概念。现在你只需记住：VO 能够从相邻帧图像中估计相机运动，并恢复场景的三维结构。之所以叫"里程计"，是因为它类似于真实的轮式里程计——只计算相邻时刻的自运动，不估计全局地图或绝对位姿。从这个意义上说，VO 就像一个只有短期记忆的物种。
 
-Now, assuming that we have the visual odometry, we are able to estimate camera movements between every two successive frames. If we connect the adjacent movements, this naturally constitutes the robot trajectory movement and addresses the localization problem. On the other hand, we can calculate the 3D position for each pixel according to the camera position at each time step, and they will form a map. Up to here, it seems with a VO, the SLAM problem is already solved. Or, is it?
+现在，假设我们已经有了视觉里程计，就能估计每两帧之间的相机运动。将相邻的运动连接起来，自然构成机器人的运动轨迹，也就解决了定位问题。另一方面，根据每个时刻的相机位置，可以计算每个像素的三维坐标，它们共同构成地图。至此，似乎有了 VO，SLAM 问题就已经解决了——真的是这样吗？
 
-Visual odometry is indeed a key technology for solving the visual SLAM problem. We will be spending a significant part explaining it in detail. However, using only a VO to estimate trajectories will inevitably cause {accumulative drift}. This is because the visual odometry (in the simplest case) only estimates the movement between two frames. We know that each estimate is accompanied by a certain error. Because of the way odometry works, errors from previous moments will be carried forward to the next moments, resulting in inaccurate estimation after some time (see Fig.~\ref{fig:loopclosure}). For example, the robot first turns left 90$^\circ$ and then turns right 90$^\circ$. Due to error, we estimate the first 90$^\circ$ as 89$^\circ$, which is possible to happen in real-world applications. Then we will be embarrassed to find that after the right turn, the robot's estimated position will not return to the origin. What's worse, even the following estimates are perfectly calculated, they will always be carrying this 1$^\circ$ error compared to the true trajectory.
+视觉里程计确实是解决视觉 SLAM 问题的关键技术，我们将花大量篇幅对其进行详细介绍。然而，仅凭 VO 估计轨迹，不可避免地会产生{累积误差}。这是因为视觉里程计（在最简单的情形下）只估计相邻两帧之间的运动，而每次估计都伴有一定误差。由于里程计的工作方式，前一时刻的误差会传递到下一时刻，导致一段时间后估计结果越来越不准确（见图~\ref{fig:loopclosure}）。例如，机器人先向左转 90°，再向右转 90°。由于误差，第一次的 90° 被估计为 89°——这在实际应用中是完全可能发生的。于是，向右转后，机器人的估计位置将无法回到原点。更糟糕的是，即使后续的估计都完全准确，它们相对于真实轨迹始终带有这 1° 的误差。
 
 \begin{figure}
     \centering
     \includegraphics[width=1.0\textwidth]{./resources/whatIsSLAM/loopclosure.pdf}
-    \caption{Drift will be accumulated if we only have a relative motion estimation~\cite{Ho2007}.}
+    \caption{如果只有相对运动估计，误差将不断累积~\cite{Ho2007}。}
     \label{fig:loopclosure}
 \end{figure}
 
-The accumulated drift will make us unable to build a consistent map. A straight corridor may oblique, and a 90$^\circ$ angle may be crooked - this is really an unbearable matter! To solve the drifting problem, we also need other two components: the \textit{backend optimization} \footnote{It is usually known as the \textit{backend}. Since it is often implemented by optimization, so we use the term backend optimization.} and \textit{loop closing}. Loop closing is responsible for detecting whether the robot returns to its previous position, while the backend optimization corrects the shape of the entire trajectory based on this information.
+累积误差会使我们无法构建一致的地图：笔直的走廊可能变得倾斜，直角可能变得歪曲——这实在令人难以接受！为了解决漂移问题，我们还需要另外两个组件：\textit{后端优化}\footnote{通常简称为\textit{后端}，由于多通过优化方法实现，故称为后端优化。}和\textit{回环检测}。回环检测负责判断机器人是否回到了之前经过的位置，后端优化则根据这一信息对整条轨迹的形状进行校正。
 
-\subsubsection{Backend Optimization}
-Generally speaking, backend optimization mainly refers to the process of dealing with the \emph{noise} in SLAM systems. We hope that all the sensor data is accurate, but in reality, even the most expensive sensors still have a certain amount of noise. Cheap sensors usually have larger measurement errors, while that of expensive ones may be small. Moreover, many sensors' performance is affected by changes in the magnetic field, temperature, etc. Therefore, in addition to solving the problem of estimating camera movements from images, we also care about how much noise this estimation contains, how it is carried forward from the last time step to the next, and how confident we have in the current estimation. The backend optimization solves the problem of estimating the state of the entire system from noisy input data and calculate their uncertainty. The state here includes both the robot's own trajectory and the environment map.
+\subsubsection{后端优化}
+一般来说，后端优化主要是指处理 SLAM 系统中\emph{噪声}的过程。我们希望所有传感器数据都是精确的，但现实中，即使是最昂贵的传感器也有一定的噪声。廉价传感器的测量误差通常更大，昂贵的则较小。此外，许多传感器的性能还会受到磁场、温度等变化的影响。因此，除了解决从图像中估计相机运动的问题，我们还关心这种估计含有多少噪声、噪声如何从上一时刻传递到下一时刻，以及我们对当前估计有多大把握。后端优化解决的是从含噪输入数据中估计整个系统状态并计算其不确定性的问题。这里的状态包括机器人自身的轨迹和环境地图。
 
-In contrast, the visual odometry part is usually referred to as the \textit{frontend}. In a SLAM framework, the frontend provides data to be optimized by the backend and the initial values. Because the backend is responsible for the overall optimization, we only care about the data itself instead of where it comes from. In other words, we only have numbers and matrices in the backend without those beautiful images. In visual SLAM, the frontend is more relevant to \textit{computer vision} topics, such as image feature extraction and matching, while the backend is relevant to the \textit{state estimation} research area.
+相比之下，视觉里程计部分通常被称为\textit{前端}。在 SLAM 框架中，前端向后端提供待优化的数据和初始值。由于后端负责整体优化，我们只关心数据本身，不关心数据来自哪里。换句话说，在后端只有数字和矩阵，而没有那些美丽的图像。在视觉 SLAM 中，前端更多涉及\textit{计算机视觉}领域的内容，如图像特征提取和匹配；而后端则与\textit{状态估计}研究领域相关。
 
-Historically, the backend optimization part has been equivalent to ``SLAM research'' for a long time. In the early days, the SLAM problem was described as a state estimation problem, exactly what the backend optimization tries to solve. In the earliest papers on SLAM, researchers at that time called it ``estimation of spatial uncertainty''~\cite{Smith1986, Smith1990}. Although it sounds a little obscure, it does reflect the nature of the SLAM problem: the estimation of the uncertainty of the self-movement and the surrounding environment. In order to solve the SLAM problem, we need state estimation theory to express the uncertainty of localization and map construction and then use filters or nonlinear optimization to estimate the mean and uncertainty (covariance) of the states. The details of state estimation and nonlinear optimization will be explained in chapter~\ref{cpt:6},~\ref{cpt:backend1}, and~\ref{cpt:backend2}.
+在历史上，后端优化曾长期等同于"SLAM 研究"本身。早期，SLAM 问题被描述为一个状态估计问题，正是后端优化所要解决的。在最早关于 SLAM 的论文中，当时的研究人员称之为"空间不确定性估计"~\cite{Smith1986, Smith1990}。虽然听起来有些晦涩，但确实反映了 SLAM 问题的本质：对自身运动和周围环境不确定性的估计。为了解决 SLAM 问题，我们需要状态估计理论来表达定位和地图构建的不确定性，然后利用滤波器或非线性优化来估计状态的均值和不确定性（协方差）。状态估计和非线性优化的细节将在第~\ref{cpt:6}、~\ref{cpt:backend1} 和~\ref{cpt:backend2} 章中介绍。
 
-\subsubsection{Loop Closing}
-Loop Closing, also known as \textit{loop closure detection}, mainly addresses the drifting problem of position estimation in SLAM. So how to solve it? Assuming a robot has returned to origin after a movement period, the estimated does not return to the origin due to drift. How to correct it? Imagine that if there is some way to let the robot know that it has returned to the origin, we can pull the estimated locations to the origin to eliminate drifts, which is what the loop closing exactly does.
+\subsubsection{回环检测}
+回环检测，又称\textit{闭环检测}，主要解决 SLAM 中位置估计漂移的问题。那么如何解决？假设机器人经过一段运动后回到了原点，但由于漂移，估计结果并未回到原点。如何纠正？设想如果有某种方法能让机器人知道自己已经回到了原点，我们就可以把估计位置"拉回"原点，从而消除漂移——这正是回环检测所做的事情。
 
-Loop closing has a close relationship with both localization and map building. In fact, the main purpose of building a map is to enable a robot to know the places it has been to. To achieve loop closing, we need to let the robot have the ability to identify the scenes it has visited before. There are different alternatives to achieve this goal. For example, as we mentioned earlier, we can set a marker where the robot starts, such as a QR code. If the sign was seen again, we know that the robot has returned to the origin. However, the marker is essentially an intrusive sensor that sets additional constraints to the application environment. We prefer the robot can use its non-intrusive sensors, e.g., the image itself, to complete this task. A possible approach would be to detect similarities between images. This is inspired by us humans. When we see two similar images, it is easy to identify that they are taken from the same place. If the loop closing is successful, the accumulative error can be significantly reduced. Therefore, visual loop detection is essentially an algorithm for calculating similarities of images. Note that the loop closing problem also exists in laser-based SLAM. The rich information contained in images can remarkably reduce the difficulty of making a correct loop detection.
+回环检测与定位和地图构建都有着密切的关系。事实上，构建地图的主要目的之一就是让机器人能够识别它曾经去过的地方。为了实现回环检测，需要让机器人具备识别之前访问过的场景的能力。实现这一目标有多种方案。例如，如前所述，可以在机器人出发点设置标记，如二维码，一旦再次看到该标记，便知道机器人已回到原点。然而，标记本质上是侵入式传感器，对应用环境施加了额外约束。我们更希望机器人能用非侵入式传感器（如图像本身）来完成这项任务。一种可行的方法是检测图像之间的相似性——这一想法来源于人类的经验：当我们看到两张相似的图像时，很容易判断它们拍摄自同一地点。若回环检测成功，可以显著减少累积误差。因此，视觉回环检测本质上是一种计算图像相似度的算法。需要注意的是，回环问题在激光 SLAM 中同样存在，而图像中丰富的信息可以显著降低正确检测回环的难度。
 
-After a loop is detected, we will tell the backend optimization algorithm like, ``OK,  A and B are the same point''. Based on this new information, the trajectory and the map will be adjusted to match the loop detection result. In this way, if we have sufficient and reliable loop detection, we can eliminate cumulative errors and get globally consistent trajectories and maps.
+检测到回环后，我们会告诉后端优化算法："好，A 点和 B 点是同一个点。"根据这一新信息，轨迹和地图将被调整以与回环检测结果吻合。这样，若能获得充分可靠的回环检测，就可以消除累积误差，得到全局一致的轨迹和地图。
 
-\subsubsection{Mapping}
-Mapping means the process of building a map, whatever kind it is. A map (see Fig.~\ref{fig:mapping}) is a description of the environment, but the way of description is not fixed and depends on the actual application.
+\subsubsection{建图}
+建图，即构建地图的过程，无论构建的是哪种地图。地图（见图~\ref{fig:mapping}）是对环境的描述，但描述方式并不固定，取决于实际应用需求。
 
 \begin{figure}
 	\centering
 	\includegraphics[width=1.0\textwidth]{./resources/whatIsSLAM/map.pdf}
-	\caption{Different kinds of maps: 2D grid map, 2D topological map, 3D point clouds and 3D meshes~\cite{Beeson2010}.}
+	\caption{各种地图类型：二维栅格地图、二维拓扑地图、三维点云和三维网格~\cite{Beeson2010}。}
 	\label{fig:mapping}
 \end{figure}
 
-Let's take the domestic cleaning robots as an example. Since they basically move on the ground, a two-dimensional map with marks for open areas and obstacles, built by a single-line laser scanner, would be sufficient for navigation for them. And for a camera, we need at least a three-dimensional map for its 6 degrees-of-freedom movement. Sometimes, we want a smooth and beautiful reconstruction result, not just a set of points but also a texture of triangular faces. And at other times, we do not care about the map, just need to know things like ``point A and point B are connected, while point B and point C are not'', which is a topological way to understand the environment. Sometimes maps may not even be needed. For instance, a level-2 autonomous driving car can make a lane-following driving only knowing its relative motion with the lanes.
+以家用清洁机器人为例。由于它们基本在地面上移动，用单线激光扫描仪构建的带有可通行区域和障碍物标注的二维地图，就足以满足其导航需求。而对于相机，由于其具有 6 个自由度的运动，至少需要三维地图。有时我们希望得到光滑美观的重建结果，不只是一组点，还要有三角面的纹理。而在另一些情况下，我们并不关心地图本身，只需知道"A 点和 B 点相连，而 B 点和 C 点不相连"——这是以拓扑方式理解环境。有时甚至根本不需要地图，例如，2 级自动驾驶汽车只需知道与车道线的相对运动，就能实现车道跟随行驶。
 
-For maps, we have various ideas and demands. Compared to the previously mentioned VO, loop closure detection, and backend optimization, map building does not have a particular algorithm. A collection of spatial points can be called a map. A beautiful 3D model is also a map, so is a picture of a city, a village, railways, and rivers. The form of the map depends on the application of SLAM. In general, they can be divided into to categories: \emph{metrical maps} and \emph{topological maps}.
+对于地图，我们有各种各样的想法和需求。与前面提到的 VO、回环检测和后端优化相比，建图并没有一个特定的算法。一组空间点可以称为地图，一个精美的三维模型也是地图，一张标有城市、村庄、铁路和河流的地图同样如此。地图的形式取决于 SLAM 的应用场景。总体而言，可分为两大类：\emph{度量地图}和\emph{拓扑地图}。
 
-\paragraph{Metric Maps}
-Metrical maps emphasize the exact metrical locations of the objects in maps. They are usually classified as either sparse or dense. Sparse metric maps store the scene into a compact form and do not express all the objects. For example, we can construct a sparse map by selecting representative landmarks such as the lanes and traffic signs and ignore other parts. In contrast, dense metrical maps focus on modeling all the things that are seen. A sparse map would be enough for localization, while for navigation, a dense map is usually needed (otherwise, we may hit a wall between two landmarks). A dense map usually consists of a number of small grids at a certain resolution. It can be small occupancy grids for 2D metric maps or small voxel grids for 3D maps. For example, in a 2D occupancy grid map, a grid may have three states: occupied, not occupied, and unknown, to express whether there is an object. When a spatial location is queried, the map can provide information about whether the location is passable. This type of maps can be used for various navigation algorithms, such as A$^*$, D$^*$\footnote{ See \url{https://en.wikipedia.org/wiki/A*_search_algorithm}.}, etc., and thus attract the attention of robotics researchers. But we can also see that all the grid status are store in the map, thus being storage expensive. There are also some open issues in building a metric map. For example, in large-scale metrical maps, a small steering error may cause the walls of two rooms to overlap, making the map ineffective.
+\paragraph{度量地图}
+度量地图强调地图中物体的精确度量位置，通常分为稀疏和稠密两类。稀疏度量地图以紧凑形式存储场景，不表达所有物体。例如，我们可以选择车道线、交通标志等代表性路标构建稀疏地图，忽略其他部分。相比之下，稠密度量地图着重对所有可见内容进行建模。稀疏地图足以用于定位，而对于导航，通常需要稠密地图（否则可能在两个路标之间撞墙）。稠密地图通常由特定分辨率的大量小栅格组成，二维度量地图使用小占用栅格，三维地图则使用小体素栅格。例如，在二维占用栅格地图中，每个栅格可能有三种状态：占用、空闲和未知，用于表达该处是否有障碍物。查询某个空间位置时，地图可以提供该位置是否可通行的信息。这类地图可用于各种导航算法，如 A$^*$、D$^*$\footnote{ 参见 \url{https://en.wikipedia.org/wiki/A*_search_algorithm}。}等，因而吸引了机器人研究人员的广泛关注。但我们也可以看到，地图中存储了所有栅格状态，存储开销较大。此外，构建度量地图仍存在一些尚未解决的问题。例如，在大规模度量地图中，微小的转向误差可能导致两个房间的墙壁重叠，使地图失效。
 
-\paragraph{Topological Maps}
-Compared to the accurate metrical maps, topological maps emphasize the relationships among map elements. A topological map is a graph composed of nodes and edges, only considering the connectivity between nodes. For instance, we only care about that point A and point B are connected, regardless of how we could travel from point A to point B. It relaxes the requirements on precise locations of a map by removing map details and is, therefore, a more compact expression. However, topological maps are not good at representing maps with complex structures. Questions such as how to split a map to form nodes and edges and how to use a topological map for navigation and path planning are still open problems to be studied.
+\paragraph{拓扑地图}
+与精确的度量地图相比，拓扑地图更强调地图元素之间的关系。拓扑地图是由节点和边组成的图，只考虑节点之间的连通性。例如，我们只关心 A 点和 B 点是否相连，而不关心从 A 点到 B 点如何行进。它通过去除地图细节，放宽了对精确位置的要求，因而是一种更紧凑的表达方式。然而，拓扑地图不善于表示结构复杂的地图。如何将地图分割形成节点和边，以及如何利用拓扑地图进行导航和路径规划，仍是有待研究的开放问题。
 
-\section{Mathematical Formulation of SLAM Problems}
-Through the previous introduction, readers should have gained an intuitive understanding of the modules in a SLAM system and each module's main functionality. However, we cannot write runnable programs only based on intuitive impressions. We want to raise it to a rational and rigorous level, using mathematical symbols to formulate a SLAM process. We will be using variables and formulas, but please rest assured that we will try our best to keep it clear enough.
+\section{SLAM 问题的数学表述}
+通过前面的介绍，读者应该对 SLAM 系统各模块及其主要功能有了直观的认识。然而，仅凭直观印象无法编写出可运行的程序。我们需要将其提升到理性、严谨的层面，用数学符号来描述 SLAM 过程。下面将使用变量和公式，但请放心，我们会尽力保持足够清晰。
 
-Assuming that our Little Carrot is moving in an unknown environment, carrying some sensors. How can this be described in mathematical language? First, since sensors usually collect data at different time points, we are only concerned with the locations and the map at these moments. This turns a continuous process into discrete time steps, say $1, \cdots, k$, at which data sampling happens. We use $\mathbf{x}$ to indicate positions of Little Carrot. So the positions at different time steps can be written as $\mathbf{x}_1,\cdots,\mathbf{x}_k$, which constitute the trajectory of Little Carrot. In terms of the map, we assume that the map is made up of several \emph{landmarks}, and at each time step, the sensors can see a part of the landmarks and record their observations. Assume there is a total of $N$ landmarks in the map, and we will use $\mathbf{y}_1, \cdots, \mathbf{y}_N$ to denote them.
+假设我们的小萝卜在一个未知环境中移动，并携带一些传感器。如何用数学语言描述这一过程？首先，由于传感器通常在不同时间点采集数据，我们只关心这些时刻的位置和地图。这将一个连续过程离散化为若干时间步，记为 $1, \cdots, k$，即数据采样时刻。用 $\mathbf{x}$ 表示小萝卜的位置，则不同时刻的位置可以写作 $\mathbf{x}_1,\cdots,\mathbf{x}_k$，构成小萝卜的运动轨迹。对于地图，假设地图由若干\emph{路标点}组成，在每个时间步，传感器可以观测到部分路标点并记录其观测结果。假设地图中共有 $N$ 个路标点，用 $\mathbf{y}_1, \cdots, \mathbf{y}_N$ 来表示它们。
 
-With such a setting, the process that \textit{Little Carrot moves in the environment with sensors} basically has two parts: 
+在这样的设定下，\textit{小萝卜携带传感器在环境中移动}的过程基本包含两个部分：
 
 \begin{enumerate}
-\item What is its \emph{motion}? We want to describe how $\mathbf{x}$ changes from time step $k-1$ to $k$.
-\item What are the sensor \emph{observations}? Assuming that the Little Carrot detects a specific landmark, let's say $\mathbf{y}_j$ at position $\mathbf{x}_k$, we need to describe this event in mathematical language.
+\item 它的\emph{运动}是什么？我们希望描述 $\mathbf{x}$ 如何从第 $k-1$ 时刻变化到第 $k$ 时刻。
+\item 传感器的\emph{观测}是什么？假设小萝卜在位置 $\mathbf{x}_k$ 处观测到某个特定路标点 $\mathbf{y}_j$，我们需要用数学语言描述这一事件。
 \end{enumerate}
 
-Let's first take a look at motion. Typically, we may send some motion commands to the robots like ``turn 15 degrees to left''. These commands will be finally carried out by the controller, probably in many different ways. Sometimes we control the position of robots, but acceleration or angular velocity would always be reasonable alternates. However, no matter what the controller is, we can use a universal and abstract mathematical model to describe it:
+先来看运动。通常，我们会向机器人发送一些运动指令，如"向左转 15 度"。这些指令最终由控制器执行，可能以多种不同方式实现。有时我们控制机器人的位置，但加速度或角速度也是合理的替代方案。然而，无论控制器是什么，都可以用一个通用且抽象的数学模型来描述：
 \begin{equation}
 {\mathbf{x}_k} = f\left( {{\mathbf{x}_{k - 1}},{\mathbf{u}_k}, \mathbf{w}_k} \right),
 \end{equation}
-where $\mathbf{u}_k$ is the input commands, and $\mathbf{w}_k$ is noise. Note that we use a general $f(\cdot)$ to describe the process, instead of specifying the exact form of $f$. This allows the function to represent any motion input, rather than being limited to a particular one. We call it the \emph{motion equation}.
+其中 $\mathbf{u}_k$ 为输入指令，$\mathbf{w}_k$ 为噪声。注意，我们用通用函数 $f(\cdot)$ 来描述这一过程，而不指定 $f$ 的具体形式。这使得该函数可以表示任意运动输入，而不局限于某一特定形式。我们称之为\emph{运动方程}。
 
-The presence of noise turns this model into a stochastic model. In other words, even if we give an order as ``move forward one meter'', it does not mean that our robot really drives one meter in front. If all the instructions are accurate, there is no need to estimate anything. In fact, the robot may only forward by, say, 0.9 meters, and at another moment, it moves by 1.1 meters. Thus, the noise during each movement is random. If we ignore this noise, the position determined only by the input command maybe a hundred miles away from the real position after several minutes.
+噪声的存在使这个模型成为随机模型。换句话说，即使我们发出"前进一米"的指令，也不意味着机器人真的会前进一米。如果所有指令都是精确的，就没有什么需要估计的了。实际上，机器人可能只前进了 0.9 米，而在另一时刻又前进了 1.1 米。因此，每次运动中的噪声是随机的。如果忽略这种噪声，仅凭输入指令确定的位置，在几分钟后可能与真实位置相差甚远。
 
-Corresponding to the motion equation, we also have an \textit{observation equation}. The observation equation describes the process that the Little Carrot sees a landmark point $\mathbf{y}_j$ at $\mathbf{x}_k$ and generates an observation data $\mathbf{z}_{k,j}$. Likewise, we will describe this relationship with an abstract function $h(\cdot)$:
+与运动方程相对应，我们还有一个\textit{观测方程}。观测方程描述了小萝卜在 $\mathbf{x}_k$ 处观测到路标点 $\mathbf{y}_j$ 并生成观测数据 $\mathbf{z}_{k,j}$ 的过程。同样，用抽象函数 $h(\cdot)$ 描述这一关系：
 \begin{equation}
 {\mathbf{z}_{k,j}} = h\left( {{\mathbf{y}_j},{\mathbf{x}_k}, \mathbf{v}_{k,j} } \right),
 \end{equation}
-where $\mathbf{v}_{k,j}$ is the noise in this observation. Since there are various observation sensors, the observed data $\mathbf{z}$ and the observation equation $h$ may also have many different forms.
+其中 $\mathbf{v}_{k,j}$ 是本次观测中的噪声。由于观测传感器多种多样，观测数据 $\mathbf{z}$ 和观测方程 $h$ 也可能有很多不同的形式。
 
-Readers may say that the function $f,h$ here does not seem to specify what is going on in the motion and observation. Also, what do the variables $\mathbf{x}$, $\mathbf{y}$, $\mathbf{z}$ mean here? Depending on the actual motion and the type of sensor, there are several kinds of parameterization methods. What is parameterization? For example, suppose our robot moves in a plane, then its pose \footnote{ In this book, we use the word ``pose'' to mean ``position'' plus ``rotation''. } is described by two $x-y$ coordinates and an angle, i.e.,  $\mathbf{x}_k = [x_1,x_2,\theta]_k^\mathrm{T}$, where $x_1, x_2$ are positions on two axes and $\theta$ is the angle. At the same time, the input command is the position and angle change between the time interval: $\mathbf{u}_k = [ \Delta x_1, \Delta x_2, \Delta \theta ]_k^\mathrm{T} $, so the motion equation can be parameterized as:
+读者可能会说，这里的函数 $f,h$ 似乎并没有说明运动和观测的具体内容，变量 $\mathbf{x}$、$\mathbf{y}$、$\mathbf{z}$ 代表什么？根据实际运动和传感器类型的不同，有几种参数化方式。什么是参数化？举个例子，假设机器人在平面内运动，则其位姿\footnote{本书中，"位姿"一词意指"位置"加"旋转"。}由两个 $x$-$y$ 坐标和一个角度描述，即 $\mathbf{x}_k = [x_1,x_2,\theta]_k^\mathrm{T}$，其中 $x_1, x_2$ 是两轴上的位置，$\theta$ 是角度。同时，输入指令为时间间隔内的位置和角度变化：$\mathbf{u}_k = [ \Delta x_1, \Delta x_2, \Delta \theta ]_k^\mathrm{T} $，则运动方程可参数化为：
 \begin{equation}
 {\left[ \begin{array}{l}
     x_1\\
@@ -235,9 +235,9 @@ Readers may say that the function $f,h$ here does not seem to specify what is go
     \Delta \theta
     \end{array} \right]_k} + {\mathbf{w}_k},
 \end{equation}
-where $\mathbf{w}_k$ is the noise again. This is a simple linear relationship. However, not all input commands are position and angular changes. For example, the input of ``throttle'' or ``joystick'' is the speed or acceleration, so there are other forms of more complex motion equations. At that time, we would say the kinematic analysis is required.
+其中 $\mathbf{w}_k$ 同样是噪声。这是一个简单的线性关系。然而，并非所有输入指令都是位置和角度的变化。例如，"油门"或"摇杆"的输入是速度或加速度，因此还有其他更复杂的运动方程形式，此时需要进行运动学分析。
 
-Regarding the observation equation, for example, the robot carries a two-dimensional laser sensor. We know that a laser observes a 2D landmark by measuring two quantities: the distance $r$ between the landmark point and the robot, and the angle $\phi$. Let's say the landmark is at $\mathbf{y}_j = [y_1, y_2]_j^\mathrm{T}$, the pose is $\mathbf{x}_k=[x_1,x_2]_k^\mathrm{T}$, and the observed data is $\mathbf{z}_{k,j} = [r_{k,j}, \phi_{k,j}]^\mathrm{T}$, then the observation equation is written as:
+对于观测方程，例如机器人携带二维激光传感器。我们知道激光通过测量两个量来观测二维路标点：路标点与机器人之间的距离 $r$，以及角度 $\phi$。设路标点位于 $\mathbf{y}_j = [y_1, y_2]_j^\mathrm{T}$，位姿为 $\mathbf{x}_k=[x_1,x_2]_k^\mathrm{T}$，观测数据为 $\mathbf{z}_{k,j} = [r_{k,j}, \phi_{k,j}]^\mathrm{T}$，则观测方程写作：
 \begin{equation}
 \left[ \begin{array}{l}
 r_{k,j}\\
@@ -248,9 +248,9 @@ r_{k,j}\\
 \end{array} \right] + \mathbf{v}_{k, j}.
 \end{equation}
 
-When considering visual SLAM, the sensor is a camera, then the observation equation is a process like ``getting the pixels in the image of the landmarks.'' This process involves a description of the camera model, which will be covered in detail in chapter~\ref{cpt:5}.
+在视觉 SLAM 中，传感器为相机，则观测方程描述的是"将路标点投影到图像中得到像素"的过程。这涉及相机模型的描述，将在第~\ref{cpt:5} 章详细介绍。
 
-Obviously, it can be seen that the two equations have different parameterized forms for different sensors. If we maintain versatility and take them into a common abstract form, then the SLAM process can be summarized into two basic equations:
+显然，可以看出这两个方程在不同传感器下具有不同的参数化形式。如果保持通用性，将其抽象为统一的形式，则 SLAM 过程可以归纳为两个基本方程：
 \begin{equation}
 \label{eq:slamproblem}
 \left\{ \begin{array}{l}
@@ -258,41 +258,41 @@ Obviously, it can be seen that the two equations have different parameterized fo
 {\mathbf{z}_{k,j}} = h\left( {{ \mathbf{y}_j},{ \mathbf{x}_k}}, \mathbf{v}_{k,j} \right), \quad (k,j) \in \mathcal{O}
 \end{array} \right. ,
 \end{equation}
-where $\mathcal{O}$ is a set that contains the information at which pose the landmark was observed (usually not all the landmarks can be seen at every moment -- we are likely to see only a small part of the landmarks  at a single moment). These two equations together describe a basic SLAM problem: how to solve the estimate $\mathbf{x}$ (localization) and $\mathbf{y}$ (mapping) problem with the noisy control input $\mathbf{u}$ and the sensor reading $\mathbf{z}$ data? Now, as we see, we have modeled the SLAM problem as a \textbf{state estimation problem}: How to estimate the internal, hidden state variables through the noisy measurement data?
+其中 $\mathcal{O}$ 是一个集合，包含路标点在哪个位姿下被观测到的信息（通常并非每个时刻都能看到所有路标点——在单个时刻，我们可能只能看到其中一小部分）。这两个方程共同描述了一个基本的 SLAM 问题：如何在含噪控制输入 $\mathbf{u}$ 和传感器读数 $\mathbf{z}$ 的条件下，解决对 $\mathbf{x}$（定位）和 $\mathbf{y}$（建图）的估计问题？至此，我们将 SLAM 问题建模为一个\textbf{状态估计问题}：如何通过含噪的测量数据，估计内部隐藏的状态变量？
 
-The solution to the state estimation problem is related to the two equations' specific form and the noise probability distribution. Whether the motion and observation equations are \textit{linear} and whether the noise is assumed to be \textit{Gaussian}, it is divided into \textbf{linear/nonlinear} and \textbf{Gaussian/non-Gaussian} systems. The Linear Gaussian (LG system) is the simplest, and its unbiased optimal estimation can be given by the Kalman Filter (KF). In the complex nonlinear non-Gaussian (NLNG system), we basically rely on two methods: Extended Kalman Filter (EKF) and nonlinear optimization. Until the early 21st century, the EKF-based filter method still dominated SLAM. We will linearize the system at the working point and solve it in two steps: predict-update (see chapter~\ref{cpt:backend1}). The earliest real-time visual SLAM system was developed based on EKF {\cite{Davison2007}}. Subsequently, in order to overcome the shortcomings of EKF (such as the linearization error and noise Gaussian distribution assumptions), people began to use other filters such as particle filters, and even use nonlinear optimization methods. Today, the mainstream of visual SLAM uses state-of-the-art optimization techniques represented by \textit{graph optimization} {\cite{Strasdat2012}}. We believe that optimization methods are clearly superior to filters, and as long as computing resources allow, optimization methods are often preferred (see chapters~\ref{cpt:backend1} and~\ref{cpt:backend2}).
+状态估计问题的解法与两个方程的具体形式及噪声的概率分布有关。根据运动方程和观测方程是否\textit{线性}，以及噪声是否假设为\textit{高斯分布}，可分为\textbf{线性/非线性}系统和\textbf{高斯/非高斯}系统。线性高斯（LG 系统）最为简单，其无偏最优估计可由卡尔曼滤波器（KF）给出。在复杂的非线性非高斯（NLNG 系统）中，基本依赖两种方法：扩展卡尔曼滤波器（EKF）和非线性优化。直到 21 世纪初，基于 EKF 的滤波方法仍主导着 SLAM 领域。我们在工作点处对系统进行线性化，采用"预测-更新"两步法进行求解（见第~\ref{cpt:backend1} 章）。最早的实时视觉 SLAM 系统正是基于 EKF 开发的{\cite{Davison2007}}。此后，为了克服 EKF 的不足（如线性化误差和噪声高斯分布假设），人们开始使用粒子滤波等其他滤波器，甚至采用非线性优化方法。如今，视觉 SLAM 的主流使用以\textit{图优化}为代表的先进优化技术{\cite{Strasdat2012}}。我们认为优化方法明显优于滤波器方法，只要计算资源允许，优化方法往往是首选（见第~\ref{cpt:backend1} 和~\ref{cpt:backend2} 章）。
 
-Now we believe the reader has a general understanding of SLAM's mathematical model, but we still need to clarify some issues. First, we should explain what the \textit{pose} $\mathbf{x}$ is. The word \textit{pose} we just said is somewhat vague. Perhaps the reader can understand that a robot moving in the plane can be parameterized by two coordinates plus an angle. However, more robots are more like things in three-dimensional space. We know that the motion of the three-dimensional space consists of three axes, so the movement of the robot is described by the translation on the three axes and the rotation around the three axes, totally having six \textit{degrees of freedom} (DoF). But wait, does that mean that we can describe it with a vector in $\mathbb{R}^6$? We will find that things are not that simple. For a 6 DoF \textbf{pose}, how to express it? How to optimize it? How to describe its mathematical properties?  This will be the main content of the chapter~\ref{cpt:3} and~\ref{cpt:4}. Next, we will explain how the \textit{observation equation} is parameterized in the visual SLAM. In other words, how the landmark points in space are projected onto a photo? This requires an explanation of the camera's projection model and distortion, which we will cover in chapter~\ref{cpt:5}. Finally, when we know this information, how to solve the above state estimation problem? This requires knowledge of nonlinear optimization and is the content of chapter~\ref{cpt:6}.
+现在，相信读者对 SLAM 的数学模型有了大致了解，但仍需澄清一些问题。首先，应该说明\textit{位姿} $\mathbf{x}$ 是什么。我们刚才说的"位姿"一词还比较模糊。或许读者能理解，在平面内运动的机器人可以用两个坐标加一个角度来参数化。然而，更多的机器人生活在三维空间中。我们知道，三维空间中的运动包含三个轴，因此机器人的运动由三轴上的平移和绕三轴的旋转共同描述，总计有六个\textit{自由度}（DoF）。但等一下，这是否意味着可以用 $\mathbb{R}^6$ 中的向量来描述？我们会发现事情并没有那么简单。对于 6 自由度的\textbf{位姿}，如何表达？如何优化？如何描述其数学性质？这将是第~\ref{cpt:3} 和~\ref{cpt:4} 章的主要内容。接下来，我们将解释\textit{观测方程}在视觉 SLAM 中是如何参数化的，即空间中的路标点是如何投影到一张照片上的。这需要对相机投影模型和畸变进行说明，将在第~\ref{cpt:5} 章介绍。最后，当我们掌握了这些信息，如何求解上述状态估计问题？这需要非线性优化的知识，是第~\ref{cpt:6} 章的内容。
     
-These contents form part of the mathematical knowledge of this book. After laying the groundwork for them, we can discuss more detailed knowledge of visual odometry, backend optimization, and more. It can be seen that the content of this lecture constitutes a summary of the book. If you don't understand the above concepts well, you may want to go back and read them again. Now let's start the introduction of programming!
+这些内容构成了本书的数学基础部分。在打好基础之后，我们才能讨论视觉里程计、后端优化等更详细的内容。可以看出，本章内容构成了全书的提纲。如果对上述概念还不太理解，不妨回头再读一遍。现在让我们开始编程入门的介绍！
 
-\section{Practice: Basics}
-\subsection{Installing Linux}
-Finally, we come to the exciting practice session! Are you ready? In order to complete the practice of this book, we need to prepare a computer. You can use a laptop or desktop, preferably your personal computer, because we need to install an operating system on it for experiments.
+\section{实践：基础知识}
+\subsection{安装 Linux}
+终于到了令人兴奋的实践环节！准备好了吗？为了完成本书的实践练习，我们需要准备一台计算机，可以是笔记本电脑或台式机，最好是你自己的个人电脑，因为我们需要在上面安装一个操作系统来进行实验。
 
-Our program is based on C++ programs on Linux. During the experiment, we will use several open-source libraries. Most libraries are only supported in Linux, while configuration on Windows is relatively (or quite) troublesome. Therefore, we have to assume that you already have a basic knowledge of Linux (see the previous lecture exercises), including using basic commands to understand how to install the software. Of course, you don't have to know how to develop C++ programs under Linux, which is what we want to talk about below.
+我们的程序基于 Linux 下的 C++ 程序。在实验过程中，我们将使用几个开源库。大多数库只支持 Linux，在 Windows 下的配置相对（或相当）繁琐。因此，我们假设你已经具备 Linux 的基础知识（参见前一讲的练习），包括使用基本命令、了解如何安装软件。当然，你不必知道如何在 Linux 下开发 C++ 程序，这正是我们下面要讲的内容。
 
-Let's start by installing the experimental environment required for this book. As a book for beginners, we recommend Ubuntu as a development environment. Ubuntu and its variances have enjoyed a good reputation as a novice user in all major Linux distributions. Ubuntu is an open-source operating system. Its system and software can be downloaded freely on the official website (\url{http://ubuntu.com}), which provides detailed installation instructions. At the same time, Tsinghua University, China Science and Technology University, and other major universities in China have also provided Ubuntu software mirrors, making the software installation very convenient (probably there are also mirror websites in your country).
+我们从安装本书实验所需的环境开始。作为一本面向初学者的书，我们推荐使用 Ubuntu 作为开发环境。Ubuntu 及其变体在所有主流 Linux 发行版中享有良好的新手友好声誉。Ubuntu 是一个开源操作系统，其系统和软件可以在官方网站（\url{http://ubuntu.com}）上免费下载，并提供详细的安装说明。同时，清华大学、中国科学技术大学等中国各大高校也提供了 Ubuntu 软件镜像，使软件安装非常便捷（你所在的国家/地区可能也有镜像站点）。
 
-The first version of this book uses Ubuntu 14.04 as the default development environment. In the second edition, we updated the default version to the newer \textbf{Ubuntu 18.04} (\autoref{fig:ubuntu1804}) for later research. If you want to change the styles, then Ubuntu Kylin, Debian, Deepin, and Linux Mint are also good choices. I promise that all the code in the book has been well tested under Ubuntu 18.04, but if you choose a different distribution, I am not sure if you will encounter some minor problems. You may need to spend some time solving small issues (but you can also take them as opportunities to exercise yourself). In general, Ubuntu's support for various libraries is relatively complete and rich. Although we don't limit which Linux distribution you use, in the explanation, \textbf{we will use Ubuntu 18.04 as an example} and mainly use Ubuntu commands (such as apt-get). So, in other versions of Ubuntu, there will be no obvious differences below. In general, the migration of programs between Linux is not very difficult. But if you want to use the programs in this book under Windows or OS X, you need to have some porting experience.
+本书第一版使用 Ubuntu 14.04 作为默认开发环境。在第二版中，为了更好地适应后续研究，我们将默认版本更新为更新的 \textbf{Ubuntu 18.04}（\autoref{fig:ubuntu1804}）。如果你想换其他风格，Ubuntu Kylin、Debian、Deepin 和 Linux Mint 也是不错的选择。我保证书中所有代码均已在 Ubuntu 18.04 下经过充分测试，但如果你选择不同的发行版，可能会遇到一些小问题。你可能需要花一些时间解决（也可以把它们当作锻炼自己的机会）。总体而言，Ubuntu 对各种库的支持相对完整丰富。虽然我们不限制你使用哪种 Linux 发行版，但在说明中，\textbf{我们将以 Ubuntu 18.04 为例}，主要使用 Ubuntu 命令（如 apt-get）。因此，在 Ubuntu 的其他版本下，以下内容不会有明显差异。总的来说，程序在 Linux 各发行版之间的迁移并不困难，但如果你想在 Windows 或 OS X 下运行本书的程序，则需要一定的移植经验。
 
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=1.0\textwidth]{whatIsSLAM/ubuntu.pdf}
-    \caption{Ubuntu 18.04 in virtual machine.}
+    \caption{虚拟机中的 Ubuntu 18.04。}
     \label{fig:ubuntu1804}
 \end{figure}
 
-Now, I assume there's an Ubuntu 18.04 installed on your PC. Regarding the installation of Ubuntu, you can find a lot of tutorials on the Internet. Just do it. I'll skip here. The easiest way is to use a virtual machine (see \autoref{fig:ubuntu1804}), but it takes a lot of memory (our experience is more than 4GB) and CPU to be smooth. You can also install dual systems, which will be faster, but a blank USB flash drive is required as the boot disk. In addition, virtual machine software support for external hardware is often not good enough. If you want to use real sensors (cameras, Kinects, etc.), it is recommended that you use dual systems to install Linux.
+现在，假设你的电脑上已经安装了 Ubuntu 18.04。关于 Ubuntu 的安装，网上有大量教程，请自行完成，这里不再赘述。最简单的方式是使用虚拟机（见 \autoref{fig:ubuntu1804}），但需要占用大量内存（经验上需要 4GB 以上）和 CPU 才能流畅运行。你也可以安装双系统，速度更快，但需要一个空白 U 盘作为启动盘。此外，虚拟机软件对外部硬件的支持往往不够好，如果你想使用真实传感器（相机、Kinect 等），建议安装双系统的 Linux。
 
-Now, let's say you have successfully installed Ubuntu, either a virtual machine or a dual system. If you are not familiar with Ubuntu, try its various software and experience its interface and interaction mode \footnote{Most people think Ubuntu is cool for the first time. }. But I have to remind you, especially to the novice friends: don't spend too much time on Ubuntu's user interface. Linux has a lot of chances to waste your time. You may find some niche software, some games, and even spend a lot of time looking for wallpapers. But remember, you are working with Linux. Especially in this book, you are using Linux to learn SLAM, so try to spend your time learning SLAM.
+现在，假设你已经成功安装了 Ubuntu（无论是虚拟机还是双系统）。如果你对 Ubuntu 还不熟悉，可以尝试其各种软件，体验其界面和交互方式\footnote{大多数人第一次使用 Ubuntu 都觉得很酷。}。但我要提醒你，尤其是新手朋友：不要在 Ubuntu 的用户界面上花太多时间。Linux 很容易让你浪费时间，你可能会发现一些小众软件、一些游戏，甚至花大量时间寻找壁纸。但请记住，你是在用 Linux 工作，尤其是在本书中，你是在用 Linux 学习 SLAM，所以请尽量把时间用在学习 SLAM 上。
 
-Ok, let's choose a directory and put the code for the SLAM program in this book. For example, you can put the code under \textit{slambook2} in the home directory (/home/username). We will refer to this directory \textit{code root} in the future. At the same time, you can choose another directory to copy the git code of this book, which is convenient for comparison when doing experiments. The code for this book is divided into chapters. For example, this chapter's code will be under slambook2/ch2, and the next one will be under slambook2/ch3. So, now please go into the slambook2/ch2 directory (you should create a new folder and enter the folder name).
+好了，我们来选择一个目录，把本书 SLAM 程序的代码放在里面。例如，可以将代码放在主目录（/home/用户名）下的 \textit{slambook2} 文件夹中。我们将在后续把这个目录称为\textit{代码根目录}。同时，你可以选择另一个目录来克隆本书的 git 代码，方便做实验时对照比较。本书的代码按章节划分，例如本章的代码在 slambook2/ch2 下，下一章在 slambook2/ch3 下。现在，请进入 slambook2/ch2 目录（你应该新建这个文件夹并进入）。
 
 \subsection{Hello SLAM}
-Like many computer books, let's write a \textit{HelloSLAM} program. But before we do this, let's talk about what a program is.
+与许多计算机书籍一样，我们来写一个 \textit{HelloSLAM} 程序。但在此之前，先来谈谈什么是程序。
 
-In Linux, a program is a file with execute permissions. It can be a script or a binary file, but we don't limit its suffix name (unlike Windows, you need to specify it as a .exe file). The commonly used binaries such as \textit{cd} and \textit{ls} are executable files located in the \textit{/bin} directory. For an executable program elsewhere, as long as it has executable permissions, it will run when we enter the program name in the terminal. When programming in C++, we first write a text file:
+在 Linux 中，程序是一个具有执行权限的文件，可以是脚本或二进制文件，我们不限制其后缀名（不同于 Windows 需要指定为 .exe 文件）。常用的二进制文件如 \textit{cd} 和 \textit{ls} 都是位于 \textit{/bin} 目录下的可执行文件。对于其他位置的可执行程序，只要具有执行权限，在终端输入程序名即可运行。用 C++ 编程时，我们首先写一个文本文件：
 
 \begin{lstlisting}[language=C++,caption=slambook2/ch2/helloSLAM.cpp]
 #include <iostream>
@@ -304,235 +304,236 @@ int main(int argc, char **argv) {
 }
 \end{lstlisting}
 
-Then use a program called a \textbf{compiler} to turn this text file into an executable program. Obviously, this is a very simple program that just prints a hello slam text. You should be able to understand it effortlessly, so there is no explanation here - if this is not the case, please take a look at the basics of C++. This program just outputs a string to the screen. You can use the text editor like \textit{gedit} (or \textit{vim}, if you have learned vim in the previous tutorial) and enter the code and save it in the path listed above. Now, we compile it into an executable using the compiler g++ (g++ is a C++ compiler). Enter:
+然后使用称为\textbf{编译器}的程序将这个文本文件转化为可执行程序。显然，这是一个非常简单的程序，只是打印一句 hello slam 文字。你应该能毫不费力地理解它，所以这里不作解释——如果并非如此，请先补充 C++ 基础知识。这个程序只是向屏幕输出一个字符串。你可以使用 \textit{gedit}（或者 \textit{vim}，如果你在上一个教程中学过）等文本编辑器，输入代码并保存到上述路径。现在，我们用编译器 g++（g++ 是一个 C++ 编译器）将其编译为可执行文件。输入：
 
-\begin{lstlisting}[language=sh,caption=Terminal input:]
+\begin{lstlisting}[language=sh,caption=终端输入：]
 g++ helloSLAM.cpp
 \end{lstlisting}
 
-If it goes well, this command should have no output. If the ``command not found'' error message appears on the screen, you may not have g++ installed yet. Please use the following command to install it:
-\begin{lstlisting}[language=sh,caption=Terminal input:]
+如果一切顺利，这条命令应该没有任何输出。如果屏幕上出现"command not found"错误，说明你可能还没有安装 g++，请使用以下命令安装：
+\begin{lstlisting}[language=sh,caption=终端输入：]
 sudo apt-get install g++
 \end{lstlisting}
-If there are other errors, please check again if the program you just entered is correct.
+如果出现其他错误，请检查刚才输入的程序是否正确。
 
-This command compiles the text file ``helloSLAM.cpp'' into an executable program. We check the current directory and find that there is an additional a.out file. It has executed permissions (the color shall be different in default settings). We can enter ./a.out to run the program \footnote{Don't type the first \%. }:
+这条命令将文本文件"helloSLAM.cpp"编译成可执行程序。查看当前目录，会发现多了一个 a.out 文件，它具有执行权限（在默认设置下颜色会有所不同）。输入 ./a.out 可以运行该程序\footnote{不要输入开头的 \%。}：
 
-\begin{lstlisting}[language=sh,caption=Terminal input:]
+\begin{lstlisting}[language=sh,caption=终端输入：]
 % ./a.out
 Hello SLAM!
 \end{lstlisting}
 
-As we thought, this program outputs ``Hello SLAM!'', telling us that it is running correctly.
+正如预期，这个程序输出了"Hello SLAM!"，说明它运行正常。
 
-Please review what we did before. In this example, we used the editor to enter the source code for ``helloSLAM.cpp'', then called the \textit{g++} compiler to compile it and get the executable. By default, \textit{g++} compiles the source file into a program of the name \textit{a.out} (it is a bit weird but acceptable). If we like, we can also specify the file name of this output. This is an extremely simple example. We actually \textbf{use a lot of hidden default parameters, almost omitting all intermediate steps}, in order to give the reader a simple impression (although you may not have realized it). Below we will use CMake to compile this program.
+回顾一下我们之前做的事情。在这个例子中，我们使用编辑器输入了"helloSLAM.cpp"的源代码，然后调用 \textit{g++} 编译器将其编译，得到了可执行文件。默认情况下，\textit{g++} 将源文件编译为名为 \textit{a.out} 的程序（虽然名字有点奇怪，但也可以接受）。如果需要，我们也可以指定输出文件名。这是一个极其简单的例子，实际上我们\textbf{使用了大量隐藏的默认参数，几乎省略了所有中间步骤}，目的是给读者留下一个简单的印象（尽管你可能没有意识到这一点）。下面我们将使用 CMake 来编译这个程序。
 
-\subsection{Use CMake}
-Theoretically, any C++ program can be compiled with g++. But when the program size is getting bigger and bigger, a project may have many folders and source files, and the compiled commands will be longer and longer. Usually, a small C++ project may contain more than a dozen classes, and there are complex dependencies between these classes. Some of them are compiled into executables, and some are compiled into libraries. If we only rely on the g++ command, we need to enter many commands, and the whole compilation process will become very long. Therefore, for C++ projects, using some engineering management tools is more efficient. In history, engineers used \textit{makefile} to compile automatically, but the CMake to be discussed below is more convenient than it. And CMake is widely used in engineering, we will see that most of the libraries mentioned later use CMake to manage the source code.
+\subsection{使用 CMake}
+理论上，任何 C++ 程序都可以用 g++ 编译。但当程序规模越来越大时，一个项目可能包含许多文件夹和源文件，编译命令也会越来越长。通常，一个小型 C++ 项目可能包含十几个类，这些类之间存在复杂的依赖关系，有些编译为可执行文件，有些编译为库文件。如果只依赖 g++ 命令，需要输入大量命令，整个编译过程会变得非常冗长。因此，对于 C++ 项目，使用一些工程管理工具会更加高效。在历史上，工程师使用 \textit{makefile} 进行自动编译，但下面要介绍的 CMake 比 makefile 更加便捷，且在工程中被广泛使用——我们会看到后面提到的大多数库都使用 CMake 来管理源代码。
 
-In a CMake project, we will use the \textit{cmake} command to generate a \textit{makefile}, and then use the make command to compile the entire project based on the makefile contents. The reader may not know what a makefile is, but it doesn't matter. We will learn by example. Still taking the above ``helloSLAM.cpp'' as an example, this time we are not using g++ directly, but using CMake to build a project and then compiling it. Create a new ``CMakeLists.txt'' file in ``slambook2/ch2/'' with the following contents:
+在 CMake 项目中，我们使用 \textit{cmake} 命令生成 \textit{makefile}，然后使用 make 命令根据 makefile 内容编译整个项目。读者可能不知道 makefile 是什么，但没关系，我们通过示例来学习。仍以上面的"helloSLAM.cpp"为例，这次不直接使用 g++，而是用 CMake 构建一个项目再编译。在"slambook2/ch2/"下新建一个"CMakeLists.txt"文件，内容如下：
 \begin{lstlisting}[language=Python,caption=slambook2/ch2/CMakeLists.txt]
 cmake_minimum_required( VERSION 2.8 )
 project( HelloSLAM )
 add_executable( helloSLAM helloSLAM.cpp )
 \end{lstlisting}
 
-The ``CMakeLists.txt'' file is used to tell CMake what we want to do with the files in this directory. The contents of the ``CMakeLists.txt'' file need to follow the CMake syntax.  This example demonstrates the most basic project: specifying a project name and an executable program. According to the comments, the reader should understand what each sentence does.
+"CMakeLists.txt"文件用于告诉 CMake 我们想对该目录中的文件做什么。其内容需要遵循 CMake 语法。这个例子展示了最基本的项目：指定项目名称和一个可执行程序。根据注释，读者应该能理解每一行的含义。
 
-Now, in the current directory (slambook2/ch2/), call \textit{cmake} to compile the project: \footnote{Note that there's a dot at the end of the command, please don't forget it, which means using CMake in the current directory. }:
-\begin{lstlisting}[language=sh,caption=Terminal input]
+现在，在当前目录（slambook2/ch2/）下，调用 \textit{cmake} 编译项目\footnote{注意命令末尾有一个点，请不要忘记，它表示在当前目录下使用 CMake。}：
+\begin{lstlisting}[language=sh,caption=终端输入]
 cmake .
 \end{lstlisting}
-\textit{cmake} will output some compilation information, and then generate some intermediate files in the current directory, the most important of which is the makefile\footnote{The \textit{makefile} is an automated compilation script. Please just take it as an automatically generated compiler instructions without taking care of its content. }. Since \textit{makefile} is automatically generated, we don't have to modify it. Now, compile the project with the make command.
-\begin{lstlisting}[language=sh,caption=Terminal input]
+\textit{cmake} 会输出一些编译信息，然后在当前目录下生成一些中间文件，其中最重要的是 makefile\footnote{\textit{makefile} 是一个自动化编译脚本，只需将其视为自动生成的编译器指令，无需关心其内容。}。由于 \textit{makefile} 是自动生成的，我们不必修改它。现在，用 make 命令编译项目：
+\begin{lstlisting}[language=sh,caption=终端输入]
 % make
 Scanning dependencies of target helloSLAM
 [100%] Building CXX object CMakeFiles/helloSLAM.dir/helloSLAM.cpp.o
 Linking CXX executable helloSLAM
 [100%] Built target helloSLAM
 \end{lstlisting}
-The compiler will show a process percent during compilation. We then get the declared executable \textit{helloSLAM} in our ``CMakeLists.txt'' if the compilation is successful. Just type:
-\begin{lstlisting}[language=sh,caption=Terminal Input]
+编译器在编译过程中会显示进度百分比。编译成功后，我们将在"CMakeLists.txt"中声明的可执行文件 \textit{helloSLAM} 生成出来。只需输入：
+\begin{lstlisting}[language=sh,caption=终端输入]
 % ./helloSLAM
 Hello SLAM!
 \end{lstlisting}
-to run it. Because we didn't modify the source code, we got the same result as before. Please think about the difference between this practice and the previous use of the g++ compiler. This time we used the \textit{cmake-make} process. The \textit{cmake} process handles the relationship between the project files, and the \textit{make} process actually calls g++ to compile the program. By calling this \textit{cmake-make} process, we have good management for the project: \textbf{from inputting a string of g++ commands to maintaining several relatively intuitive ``CMakeLists.txt'' files}, which will drastically reduce the difficulty of maintaining the entire project. For example, if you want to add another executable file, just add a line ``add\_executable'' in CMakeLists.txt, and the subsequent steps are unchanged. CMake will help us resolve code dependencies without having to type in a bunch of g++ commands.
+即可运行。由于我们没有修改源代码，得到了与之前相同的结果。请思考这次实践与之前直接使用 g++ 编译器的区别。这次我们使用了 \textit{cmake-make} 流程：\textit{cmake} 过程处理项目文件之间的依赖关系，\textit{make} 过程实际调用 g++ 编译程序。通过这一流程，我们对项目有了良好的管理：\textbf{从输入一大串 g++ 命令，变为维护几个相对直观的"CMakeLists.txt"文件}，这将大大降低维护整个项目的难度。例如，若要增加另一个可执行文件，只需在 CMakeLists.txt 中添加一行"add\_executable"，后续步骤不变。CMake 会帮助我们处理代码依赖关系，而无需手动输入一大堆 g++ 命令。
 
-The only thing that is dissatisfied with this process is that the intermediate files generated by CMake are still in our code files. When we want to release the code, we don't want to publish these intermediate files together. At this time, we still need to delete them one by one, which is very inconvenient. A better approach is to have these intermediate files in an intermediate directory. After the compilation is successful, we will delete the intermediate directory. Therefore, the more common practice of compiling CMake projects is as follows:
-\begin{lstlisting}[language=sh,caption=Terminal input]
+这个流程唯一不令人满意之处在于，CMake 生成的中间文件仍然在我们的代码目录中。当我们想发布代码时，不希望把这些中间文件一并发布。这时，需要一个个地手动删除，非常不便。更好的做法是将这些中间文件放在一个独立的目录中，编译成功后直接删除该目录即可。因此，编译 CMake 项目更常见的做法如下：
+\begin{lstlisting}[language=sh,caption=终端输入]
 mkdir build
 cd build
 cmake ..
 make
 \end{lstlisting}
-We created a new intermediate folder ``\textit{build}'', and then entered the build folder, use the ``\textit{cmake ..}'' command to compile the previous folder, which is the folder where the code is located. In this way, the intermediate files generated by CMake will be in the ``\textit{build}'' folder, separate from the source code. When publishing the source code, we just delete the \textit{build} folder. Please try to compile the code in ch2 in this way, and then call the generated executable (please remember to delete the intermediate file generated in the last section).
 
-\subsection{Use Libraries}
-In a C++ project, not all code is compiled into executables. Only executable files with the main function will generate executable programs. For other codes, we just want to package them into a packet for other programs to call. This packet is called \textit{library}.
+我们新建了一个名为"\textit{build}"的中间文件夹，进入该文件夹后，使用"\textit{cmake ..}"命令对上一级目录（即代码所在目录）进行编译。这样，CMake 生成的中间文件将位于"\textit{build}"文件夹中，与源代码分离。发布源代码时，只需删除 \textit{build} 文件夹即可。请尝试用这种方式编译 ch2 中的代码，然后运行生成的可执行文件（记得删除上一节中生成的中间文件）。
 
-A library is often just a collection of many algorithms and programs, and we will be exposed to other libraries in later exercises. For example, the OpenCV library provides many computer vision-related algorithms, while the \textit{Eigen} library provides calculations of matrix algebra. Therefore, we need to learn how to use CMake to generate libraries and use the library's functions. Now let's demonstrate how to write a library yourself. Write the following ``libHelloSLAM.cpp'' file:
+\subsection{使用库}
+在 C++ 项目中，并非所有代码都编译成可执行文件，只有含有 main 函数的可执行文件才会生成可执行程序。对于其他代码，我们只想将其打包成一个供其他程序调用的包，这个包就称为\textit{库}。
+
+库通常是许多算法和程序的集合，在后续实验中我们将接触到其他库。例如，OpenCV 库提供许多计算机视觉相关算法，\textit{Eigen} 库提供矩阵代数计算。因此，我们需要学习如何使用 CMake 生成库并调用库中的函数。下面演示如何自己编写一个库。编写如下"libHelloSLAM.cpp"文件：
 
 \begin{lstlisting}[language=c++,caption=slambook2/ch2/libHelloSLAM.cpp]
 #include <iostream>
 using namespace std;
 
-// Just a function printing hello message
+// 一个打印 hello 信息的函数
 void printHello() {
     cout << "Hello SLAM" << endl;
 }
 \end{lstlisting}
-This library provides a ``printHello'' function that will output a message. But it doesn't have the main function, which means there are no executables in this library. We add the following to ``CMakeLists.txt'':
+这个库提供了一个"printHello"函数，会输出一条消息。但它没有 main 函数，这意味着该库中没有可执行文件。我们在"CMakeLists.txt"中添加以下内容：
 \begin{lstlisting}[language=sh,caption=slambook2/ch2/CMakeLists.txt]
 add_library( hello libHelloSLAM.cpp )
 \end{lstlisting}
-This line tells CMake that we want to compile this file into a library called ``hello''. Then, as above, compile the entire project using \textit{cmake}:
-\begin{lstlisting}[language=sh,caption=Terminal input]
+这行代码告诉 CMake，我们想将这个文件编译成一个名为"hello"的库。然后，和之前一样，使用 \textit{cmake} 编译整个项目：
+\begin{lstlisting}[language=sh,caption=终端输入]
 cd build
 cmake ..
 make
 \end{lstlisting}
-At this point, a ``libhello.a'' file is generated in the build folder, which is the library we declared.
+此时，build 文件夹中会生成一个"libhello.a"文件，这就是我们声明的库。
 
-In Linux, library files are divided into static libraries and shared libraries. Static libraries have a ``.a'' extension, and shared libraries end with ``.so''. All libraries are collections of functions that are packaged. The difference is that a static library will generate a copy each time it is called, and the shared library has only one copy, which saves space. If you want to generate a shared library instead of a static library, just use the following statement:
+在 Linux 中，库文件分为静态库和共享库。静态库的扩展名为".a"，共享库的扩展名为".so"。所有库都是打包好的函数集合。区别在于，静态库每次被调用时都会生成一个副本，而共享库只有一个副本，可以节省空间。如果想生成共享库而非静态库，只需使用以下语句：
 
 \begin{lstlisting}[language=sh,caption=slambook2/ch2/CMakeLists.txt]
 add_library( hello_shared SHARED libHelloSLAM.cpp )
 \end{lstlisting}
-Then we will get a libhello\_shared.so.
+这样就能得到一个 libhello\_shared.so。
 
-The library file is a compressed package with compiled binary functions. However, if there is only a ``.a'' or ``.so'' library file, then we don't know what the function is and how to call it. In order for others (or ourselves) to use this library, we need to provide a \textit{header file} to indicate what is in the library. Therefore, for the library users, \textit{you can call this library as long as you get the header and library files}. Write the header file for ``libhello'' below.
+库文件是一个包含已编译二进制函数的压缩包。然而，如果只有".a"或".so"库文件，我们并不知道其中有什么函数以及如何调用。为了让他人（或自己）使用这个库，需要提供一个\textit{头文件}来说明库中包含的内容。因此，对于库的使用者来说，\textit{只需获得头文件和库文件，就可以调用该库}。下面为"libhello"编写头文件：
 
 \begin{lstlisting}[language=c++,caption=slambook2/ch2/libHelloSLAM.h]
 #ifndef LIBHELLOSLAM_H_
 #define LIBHELLOSLAM_H_
 
-// Declares a function in header file
+// 在头文件中声明一个函数
 void printHello();
 
 #endif
 \end{lstlisting}
 
-In this way, according to this file and the library file we just compiled, you can use the \textit{printHello} function. Finally, we write an executable program to call this simple function:
+这样，根据这个头文件和刚才编译的库文件，就可以使用 \textit{printHello} 函数了。最后，我们编写一个可执行程序来调用这个简单的函数：
 
 \begin{lstlisting}[language=c++,caption=slambook2/ch2/useHello.cpp]
 #include "libHelloSLAM.h"
 
-// Call printHello() in libHelloSLAM.h
+// 调用 libHelloSLAM.h 中的 printHello()
 int main(int argc, char **argv) {
     printHello();
     return 0;
 }
 \end{lstlisting}
 
-Then, declare an executable in ``CMakeLists.txt'' and \textit{link} it to the library:
+然后，在"CMakeLists.txt"中声明一个可执行文件，并将其\textit{链接}到库：
 \begin{lstlisting}[caption=slambook2/ch2/CMakeLists.txt]
 add_executable( useHello useHello.cpp )
 target_link_libraries( useHello hello_shared )
 \end{lstlisting}
 
-Through these two lines of statements, the ``useHello'' program can successfully use the code in the hello\_shared library. This small example demonstrates how to generate and call a library. Please note that we can also call other libraries' functions in the same way and integrate them into our own programs.
+通过这两行语句，"useHello"程序就能成功使用 hello\_shared 库中的代码。这个小例子演示了如何生成和调用库。请注意，我们也可以用同样的方式调用其他库的函数，并将其集成到我们自己的程序中。
 
-In addition to the features already demonstrated, \textit{cmake} has many more syntax and options. Of course, we can not list all of them here. In fact, cmake is very similar to a normal programming language, with variables and conditional control statements, so you can learn cmake just like learning programming. The exercises contain some reading materials for cmake, which can be read by interested readers. Now, a brief review of what we did before:
+除了已演示的功能之外，\textit{cmake} 还有许多语法和选项。当然，这里无法一一列举。事实上，cmake 与普通编程语言非常相似，有变量和条件控制语句，所以可以像学习编程一样学习 cmake。练习中包含一些关于 cmake 的阅读材料，感兴趣的读者可以阅读。现在，简要回顾一下我们做过的事情：
 
 \begin{enumerate}
-    \item First, the program code consists of a header file and a source file.
-    \item The source file with the main function is compiled into an executable program, and the other is compiled into a library file.
-    \item If the executable wants to call a function in the library file, it needs to refer to the library's header file to understand the format of the function. Also, we need to link the executable to the library file.
+    \item 首先，程序代码由头文件和源文件组成。
+    \item 含有 main 函数的源文件编译为可执行程序，其他文件编译为库文件。
+    \item 如果可执行文件想调用库文件中的函数，需要引用库的头文件以了解函数的格式，同时还需要将可执行文件链接到库文件。
 \end{enumerate}
 
-These steps should be simple and clear, but you may encounter some problems in the actual operation. For example, what happens if the executable references a library function but we forget to link the library? Try removing the link command in ``CMakeLists.txt'' and see what happens. Can you understand the error message reported by \textit{cmake}?
+这些步骤应该简单清晰，但在实际操作中可能会遇到一些问题。例如，如果可执行文件引用了库中的函数，但我们忘记链接该库，会发生什么？请尝试删除"CMakeLists.txt"中的链接命令，看看会发生什么。你能读懂 \textit{cmake} 报告的错误信息吗？
 
-\subsection{Use IDE}
-Finally, let's talk about how to use the Integrated Development Environments (IDEs). The previous programming can be done with a simple text editor. However, you may need to jump between files to query the declaration and implementation of a function. This can be a little annoying when there are too many files. The IDE provides developers with a lot of convenient functions such as jump, completion, breakpoint debugging, etc. Therefore, we recommend that the reader choose an IDE for development.
+\subsection{使用 IDE}
+最后，我们来谈谈如何使用集成开发环境（IDE）。前面的编程工作用一个简单的文本编辑器就可以完成。然而，当文件太多时，你可能需要在文件之间来回跳转以查询函数的声明和实现，这会有些烦人。IDE 为开发者提供了许多便捷功能，如跳转、补全、断点调试等。因此，我们建议读者选择一个 IDE 进行开发。
 
-There are many kinds of IDEs under Linux. Although there are still some gaps with the best IDE (I mean Visual Studio in Windows), there are several C++ IDEs in Linux, such as Eclipse, Qt Creator, Code::Blocks, CLion, Visual Studio Code, and so on. Again, we don't force readers to use a particular IDE but only give our advice \footnote{Yes, vim is cool. But I still suggest use vim in IDE, not vim as IDE.}. We are using KDevelop and CLion (see \autoref{fig:kdevelop} and \autoref{fig:clion}) \footnote{However, the recent Visual Studio Code is getting better and better. It's free. It's very popular among developers. You may have a try. }. KDevelop is a free software located in Ubuntu's software repository, meaning you can install it with apt-get; CLion is a paid software, but you can use the student mailbox for free for one year. Both are good C++ development environments, the advantages are listed below:
+Linux 下有很多 IDE。虽然与最好的 IDE（我指的是 Windows 下的 Visual Studio）还有一定差距，但 Linux 下有几款不错的 C++ IDE，如 Eclipse、Qt Creator、Code::Blocks、CLion、Visual Studio Code 等。同样，我们不强制读者使用某一特定的 IDE，只给出我们的建议\footnote{是的，vim 很酷。但我仍然建议在 IDE 中使用 vim，而不是把 vim 当作 IDE 来用。}。我们使用的是 KDevelop 和 CLion（见 \autoref{fig:kdevelop} 和 \autoref{fig:clion}）\footnote{不过，近年来 Visual Studio Code 越来越好了，而且是免费的，在开发者中非常流行，你可以试试。}。KDevelop 是一款自由软件，位于 Ubuntu 的软件仓库中，可以用 apt-get 安装；CLion 是付费软件，但可以用学生邮箱免费使用一年。两者都是不错的 C++ 开发环境，优点如下：
 
 \begin{enumerate}
-    \item Support CMake projects natively.
-    \item Support C++ better (including the 11 and later standards). There are highlighting, jumping, and finishing functions. Can automatically format the code.
-    \item Makes it easy to see individual files and directory trees.
-    \item Has one-click compilation, breakpoint debugging, and other functions.
+    \item 原生支持 CMake 项目。
+    \item 更好地支持 C++（包括 C++11 及更新标准），具有高亮、跳转和补全功能，可以自动格式化代码。
+    \item 方便查看单个文件和目录树。
+    \item 具有一键编译、断点调试等功能。
 \end{enumerate}
 
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=0.8\textwidth]{whatIsSLAM/kdevelop.pdf}
-    \caption{Kdevelop in Ubuntu.}
+    \caption{Ubuntu 下的 KDevelop。}
     \label{fig:kdevelop}
 \end{figure}
 
-Below we take a little bit of space to introduce KDevelop and CLion.
+下面用一小段篇幅介绍 KDevelop 和 CLion。
 
-\subsubsection{Use KDevelop}
-KDevelop natively supports the CMake project. To do this, after creating ``CMakeLists.txt'' in the terminal, open the ``CMakeLists.txt'' with ``Project $\rightarrow$Open/Import Project'' in KDevelop. The software will ask you a few questions, and by default, create a build folder to help you call the cmake and make commands. These can be done automatically by pressing the shortcut key F8. The following section of \autoref{fig:kdevelop} shows the compilation information.
+\subsubsection{使用 KDevelop}
+KDevelop 原生支持 CMake 项目。在终端中创建好"CMakeLists.txt"后，在 KDevelop 中通过"项目 $\rightarrow$ 打开/导入项目"来打开"CMakeLists.txt"。软件会询问几个问题，默认情况下会创建一个 build 文件夹，帮助你调用 cmake 和 make 命令。按快捷键 F8 即可自动完成。\autoref{fig:kdevelop} 的下方部分显示了编译信息。
 
-We hand over the task of adapting to the IDE to the reader. If you are transferring from Windows, you will find its interface similar to Visual C++ or Visual Studio. Please use KDevelop to open the previous project and compile it to see what information it outputs. I believe you will feel more convenient than opening the terminal.
+我们将适应 IDE 的任务留给读者自己完成。如果你是从 Windows 转过来的，会发现其界面与 Visual C++ 或 Visual Studio 相似。请使用 KDevelop 打开之前的项目并编译，看看会输出什么信息。相信你会比打开终端感觉更加方便。
 
-Next, let's show to debug in the IDE. Most of the students who program under Windows will have experience of breakpoint debugging under Visual Studio. However, in Linux, the default debugging tool gdb only provides a text interface, which is not convenient for novices. Some IDEs provide breakpoint debugging (the bottom layer is still gdb), and KDevelop is one of them. To use KDevelop's breakpoint debugging feature, you need to do the following:
+接下来，展示如何在 IDE 中进行调试。在 Windows 下编过程序的学生大多有在 Visual Studio 下进行断点调试的经验。然而，在 Linux 中，默认调试工具 gdb 只提供文本界面，对新手来说不太方便。一些 IDE 提供了断点调试功能（底层仍然是 gdb），KDevelop 就是其中之一。要使用 KDevelop 的断点调试功能，需要做以下几步：
 
 \begin{enumerate}
-    \item Set the project to Debug compilation mode in ``CMakeLists.txt'', and don't use optimization options (not used by default).
-    \item Tell KDevelop which program you want to run. If there are parameters, also configure its parameters and working directory.
-    \item Enter the breakpoint debugging interface, you can single step, see the value of the intermediate variable.
+    \item 在"CMakeLists.txt"中将项目设为 Debug 编译模式，不使用优化选项（默认不使用）。
+    \item 告诉 KDevelop 你想运行哪个程序。如果有参数，还需配置其参数和工作目录。
+    \item 进入断点调试界面，可以单步执行，查看中间变量的值。
 \end{enumerate}
 
 %\clearpage
 
-The first step is to set the compilation mode by adding the following command to ``CMakeLists.txt'':
+第一步是通过在"CMakeLists.txt"中添加以下命令来设置编译模式：
 \begin{lstlisting}[caption=slambook2/ch2/CMakeLists.txt]
 Set( CMAKE_BUILD_TYPE "Debug" )
 \end{lstlisting}
 
-CMake has some compilation-related built-in variables that give you more precise control over the compilation process. There is usually a \textit{debug} mode for debugging and a \textit{release} mode for publishing. In debug mode, the program runs slower, but breakpoint debugging is possible, and you can see the values of the variables;. In contrast, release mode is faster, but there is probably no debugging information. We set the program to Debug mode and place the breakpoint. Next, tell KDevelop which program you want to launch.
+CMake 有一些与编译相关的内置变量，可以让你对编译过程进行更精细的控制。通常有用于调试的 \textit{debug} 模式和用于发布的 \textit{release} 模式。在 debug 模式下，程序运行较慢，但可以进行断点调试，可以查看变量值；相比之下，release 模式运行更快，但可能没有调试信息。我们将程序设为 Debug 模式，并设置断点。接下来，告诉 KDevelop 你想启动哪个程序。
 
-In the second step, open ``Run $\rightarrow$Configure Launches'' and click on ``Add New $\rightarrow$ Application'' on the left. In this step, our task is to tell KDevelop which program to launch. As shown in \autoref{fig:launchConfigure}, you can either select a CMake project target (that is, the executable we built with the add\_executable directive) or point to a binary file. The second approach is recommended, and in our experience, this is less of a problem.
+第二步，打开"运行 $\rightarrow$ 配置启动项"，在左侧点击"新建 $\rightarrow$ 应用程序"。这一步的任务是告诉 KDevelop 要启动哪个程序。如 \autoref{fig:launchConfigure} 所示，可以选择一个 CMake 项目目标（即用 add\_executable 指令构建的可执行文件），或者指向一个二进制文件。推荐第二种方式，根据经验，这样遇到的问题较少。
 
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=0.8\textwidth]{whatIsSLAM/config-launch.pdf}
-    \caption{Config launches. We can choose a launch target and set parameters here. }
+    \caption{配置启动项。可以在这里选择启动目标并设置参数。}
     \label{fig:launchConfigure}
 \end{figure}
 
-In the second column, you can set the program's parameters and working directory. Sometimes programs have runtime parameters that are passed in as arguments to the main function. If not, leave it blank, as is the working directory. After configuring these two items, click the ``OK'' button to save the configuration results.
+在第二列，可以设置程序的参数和工作目录。有时程序有运行时参数，通过 main 函数的参数传入。如果没有，留空即可，工作目录同理。配置完这两项后，点击"确定"按钮保存配置结果。
 
-In these steps, we have configured an application launcher. We can click the ``Execute'' button to start the program directly or click the ``Debug'' button to debug it for each application. Readers can try to click the ``Execute'' button to see the results of the output. To debug this program, click on the left side of the ``printHello'' line and add a breakpoint. Then, click on the ``Debug'' button, and the program will wait at the breakpoint, as shown by \autoref{fig:debug}.
+完成这些步骤后，我们配置好了一个应用程序启动项。可以点击"执行"按钮直接启动程序，或点击"调试"按钮进入调试模式。读者可以尝试点击"执行"按钮，查看输出结果。若要调试程序，点击"printHello"那一行的左侧添加断点，然后点击"调试"按钮，程序将在断点处等待，如 \autoref{fig:debug} 所示。
 
 \begin{figure}[!htp]
     \centering
     \includegraphics[width=0.8\textwidth]{whatIsSLAM/debug.pdf}
-    \caption{Debug interface. }
+    \caption{调试界面。}
     \label{fig:debug}
 \end{figure}
 
-When debugging, KDevelop will switch to debug mode, and the interface will change a bit. At the breakpoint, you can control the operation of the program with a single-step operation (F10 key), single-step follow up (F11 key), and single-step jump (F12 key) function. At the same time, you can click the interface on the left to view the local variable's value. Or select the ``Stop'' button to end debugging. After debugging, KDevelop will return to the normal development interface.
+调试时，KDevelop 会切换到调试模式，界面会有所变化。在断点处，可以使用单步跳过（F10 键）、单步跟入（F11 键）和单步跳出（F12 键）功能控制程序执行。同时，可以点击左侧界面查看局部变量的值，或点击"停止"按钮结束调试。调试结束后，KDevelop 会返回正常开发界面。
 
-Now you should be familiar with the entire process of breakpoint debugging. In the future, if an error occurs during the running phase of the program, causing the program to crash, you can use breakpoint debugging to determine the location of the error, and then modify it \footnote{Instead of directly sending us an email asking how to deal with the problems. }.
+现在你应该熟悉了断点调试的整个流程。今后，如果程序在运行阶段出错导致崩溃，可以使用断点调试来定位错误位置，然后修改\footnote{而不是直接给我们发邮件询问如何处理这些问题。}。
 
-\subsubsection{Use CLion}
+\subsubsection{使用 CLion}
 \begin{figure}[!t]
     \centering
     \includegraphics[width=1.0\textwidth]{whatIsSLAM/clion.pdf}
-    \caption{CLion interface.}
+    \caption{CLion 界面。}
     \label{fig:clion}
 \end{figure}
 
-CLion is more complete than KDevelop, but it requires a user account, and the memory/CPU requirements for the host will be higher. In CLion, you can also open a ``CMakeLists.txt'' or specify a directory. CLion will complete the \textit{cmake-make} process for you. Its running interface is shown in \autoref{fig:clion}.
+CLion 比 KDevelop 更完整，但需要用户账户，对主机内存/CPU 的要求也更高。在 CLion 中，同样可以打开"CMakeLists.txt"或指定一个目录，CLion 会自动完成 \textit{cmake-make} 过程，其运行界面如 \autoref{fig:clion} 所示。
 
-Similarly, after opening CLion, you can select the programs you want to run or debug in the upper right corner of the interface and adjust their startup parameters and working directory. Click the small beetle button in this column to start the breakpoint debugging mode. CLion also has several convenient features, such as automatically creating classes, changing functions, and automatically adjusting the coding style. Please try it.
+同样，打开 CLion 后，可以在界面右上角选择要运行或调试的程序，并调整其启动参数和工作目录。点击该栏中的小虫子按钮即可进入断点调试模式。CLion 还有一些便捷功能，如自动创建类、修改函数、自动调整代码风格等，请自行体验。
 
-OK, if you are already familiar with the IDE's usage, then the second chapter will stop here. You may already feel that I have talked too much, so in the following practice section, we will not introduce things like creating a new build folder, calling the \textit{cmake} and \textit{make} commands to compile the program. I believe that readers should master these simple steps. Similarly, since most of the third-party libraries used in this book are cmake projects, you will continue to be familiar with the compilation process. Next, we will start the formal chapter and introduce some related mathematics.
+好了，如果你已经熟悉了 IDE 的用法，那么第二章就到这里。你可能已经觉得我说了很多，所以在后续的实践部分，我们不会再介绍如何新建 build 文件夹、调用 \textit{cmake} 和 \textit{make} 命令来编译程序之类的事情。相信读者应该已经掌握了这些简单的步骤。同样，由于本书使用的大多数第三方库都是 cmake 项目，你将会继续熟悉这一编译流程。接下来，我们将开始正式章节，介绍一些相关的数学知识。
 
-\section*{Exercises}
+\section*{习题}
 \begin{enumerate}
-    \item[\optional] Read SLAM's review literature, such as~\cite{Cadena2016, Fuentes-Pacheco2015, Boal2014, Chen2012, Chen2007} and so on. What are the similarities and differences between these papers on SLAM and this book?
-    \item What are the parameters of the g++ command? If I want to change the generated program file name, how should I call g++?
-    \item Use the build folder to compile your CMake project, then try it in KDevelop.
-    \item Deliberately add some syntax errors to the code to see what information the build will generate. Can you read the error message of g++?
-    \item If you forgot to link the library to the executable, will the compiler report an error? What kind of mistakes are reported?
-    \item[\optional] Read ``CMake practice'' (or other materials) to learn about the grammars of CMake.
-    \item[\optional] Improve the hello SLAM problem, make it a small library, and install it on your local hard drive. Then, create a new project, use find\_package to find the library, and call it.
-    \item[\optional] Read other CMake instructional materials, such as \url{https://github.com/TheErk/CMake-tutorial}.
-    \item Find the official website of KDevelop and see what other features it has. Are you using it?
-    \item If you learned vim in the last lecture, please try KDevelop's/CLion's vim editing function.
+    \item[\optional] 阅读 SLAM 综述文献，如~\cite{Cadena2016, Fuentes-Pacheco2015, Boal2014, Chen2012, Chen2007}等。这些论文对 SLAM 的描述与本书有哪些异同？
+    \item g++ 命令有哪些参数？如果我想修改生成的程序文件名，应该如何调用 g++？
+    \item 使用 build 文件夹编译你的 CMake 项目，然后在 KDevelop 中尝试。
+    \item 故意在代码中添加一些语法错误，看看构建时会生成什么信息。你能读懂 g++ 的错误信息吗？
+    \item 如果忘记将库链接到可执行文件，编译器会报错吗？会报什么类型的错误？
+    \item[\optional] 阅读《CMake 实践》（或其他资料），学习 CMake 的语法。
+    \item[\optional] 改进 hello SLAM 问题，将其做成一个小库，并安装到本地硬盘。然后，新建一个项目，使用 find\_package 找到该库并调用它。
+    \item[\optional] 阅读其他 CMake 教程资料，如 \url{https://github.com/TheErk/CMake-tutorial}。
+    \item 找到 KDevelop 的官方网站，看看它还有哪些其他功能。你在使用它吗？
+    \item 如果你在上一讲学习了 vim，请尝试 KDevelop/CLion 的 vim 编辑功能。
 \end{enumerate}
