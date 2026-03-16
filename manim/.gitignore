@@ -1,0 +1,4 @@
+# Manim 渲染输出（本地生成，不提交到仓库）
+media/
+__pycache__/
+*.pyc
