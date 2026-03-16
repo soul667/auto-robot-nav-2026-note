@@ -35,6 +35,7 @@ export default defineConfig({
         text: '学习',
         items: [
           { text: '李群与李代数', link: '/articles/lie-group-primer' },
+          { text: '内旋与外旋的等价性', link: '/articles/rotation-equivalence' },
           { text: '误差状态与扰动模型', link: '/articles/perturbation-model' },
           { text: '最小二乘与BA', link: '/articles/least-squares-ba' },
           { text: 'EKF-SLAM', link: '/articles/ekf-slam' },
@@ -58,6 +59,7 @@ export default defineConfig({
           text: '学习：基础与代数',
           items: [
             { text: '李群与李代数', link: '/articles/lie-group-primer' },
+            { text: '内旋与外旋的等价性', link: '/articles/rotation-equivalence' },
             { text: '误差状态与扰动模型', link: '/articles/perturbation-model' }
           ]
         },
